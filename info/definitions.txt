@@ -1,0 +1,12 @@
+Macro-economic data: Stats that reflect an economy's performance; GDP, inflation, unemployment, 
+    intrest rates, etc.
+
+ETF: Exchange Traded Fund is an index fund holding a collection of assets and can be traded throughout the 
+    day, unlike a mutual fund.
+
+Basket of equities: prepackaged collection of stocks treated as a single unit
+
+Shock scenarios: A sudden, unexpected macro scale disruption. Often used to stress test portfolio's  
+    Sudden intrest rate changes
+    Employment shock
+    -> Sector specific shock (us)

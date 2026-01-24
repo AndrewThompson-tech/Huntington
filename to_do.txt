@@ -1,0 +1,7 @@
+- Push to github
+
+- .gitignore
+
+- set up API calls for data
+
+- review stats, come up with a plan on what data is useful

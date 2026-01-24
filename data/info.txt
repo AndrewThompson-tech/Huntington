@@ -1,0 +1,15 @@
+ GDP   
+    GDP.csv- Billions of Dollars, Seasonally Adjusted Annual Rate, quarterly- https://fred.stlouisfed.org/series/GDP
+    GDPC1.csv- Billions of Chained 2017 Dollars, Seasonally Adjusted Annual Rate, quarterly- https://fred.stlouisfed.org/series/GDPC1
+
+Inflation
+    PCEPI.csv- Personal Consumption Expenditures Price Index measures consumer price changes, Index 2017=100, Seasonally Adjusted monthly- https://fred.stlouisfed.org/series/PCEPI
+
+Unemployment rate
+    UNRATE.csv- Unemployment rate, Percent,Seasonally Adjusted, monthly- https://fred.stlouisfed.org/series/UNRATE
+
+Intrest rate
+    FEDFUNDS.csv- Rate at which banks trade federal funds (impacted by market) Percent,Not Seasonally Adjusted, monthly- https://fred.stlouisfed.org/series/FEDFUNDS
+
+Oil prices
+    MCOILWTICO.csv- Dollars per Barrel, Not Seasonally Adjusted, monthly- https://fred.stlouisfed.org/series/MCOILWTICO

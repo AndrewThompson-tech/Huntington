@@ -1,0 +1,25 @@
+Basic
+    GDP
+        PMI, Piurchasing managers index -> https://www.investopedia.com/terms/p/pmi.asp
+        MOM, Month over month -> https://tradingeconomics.com/united-states/industrial-production-mom
+
+
+    Inflation
+    Unemployment
+        Job growth
+        New jobs added
+        JOLTS -> https://www.bls.gov/jlt/
+
+    Intrest rates
+        Delta over time
+    Oil prices
+
+    
+    MTS- Monthly Treasury Statement
+    Population change
+    
+
+
+Complex
+    Lag/ripple factors
+    National policy decisions

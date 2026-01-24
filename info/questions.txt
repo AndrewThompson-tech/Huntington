@@ -1,0 +1,4 @@
+Find individual variable correlation to each sector
+    ie) Health care is more effected by a population boom than say Financials
+
+For one sector, comapre each stock to the whole group. Do that each time
