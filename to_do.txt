@@ -1,12 +1,6 @@
-- Push to github
+- set up API calls for data -> FRED has some but also databento credits
 
-- .gitignore
-
-- set up API calls for data
-
-- review stats, come up with a plan on what data is useful
-
-- Scrape ETF data
+- review stats, come up with a plan on what data is useful, really look at the graphs and describe what they could mean
 
 - Sophisticate workflow
     - Ensure master_table dates line up with the stock/ETF

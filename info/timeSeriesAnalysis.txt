@@ -1,0 +1,13 @@
+Time series analysis uses past data to identify trend, seasonality, cycical variations, and irregularities (noise).
+As it pertains to this project, we are most intrested in seasonality macro trends. 
+
+To start, I will map quarerly closing price of XLE (energy) and Oil prices (MCOILWTICO) in simpleTimeSeries.py
+
+
+
+
+
+
+High level overview- https://machinelearningplus.com/time-series/time-series-analysis-python/
+Forecasting example- https://www.geeksforgeeks.org/machine-learning/time-series-analysis-and-forecasting/
+Complicated- https://keras.io/examples/timeseries/timeseries_weather_forecasting/

@@ -1,15 +1,10 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd 
-from data_cleanse import get_ticker
-
-
-
 
 def correlation(pd, ticker):
     '''
     Finds correlation between specific ETF and macro data
-
     '''
     corr_matrix = pd.select_dtypes(include='number').corr()
 
@@ -21,15 +16,14 @@ def correlation(pd, ticker):
     plt.savefig(f'plots/{ticker}.png')
     plt.show()
 
-
 def graph(MACRO, ETF,  ETF_name, MACRO_name):
     '''
-    MACRO- the macro df, typically from master_macro_table.csv
-    ETF- ETF df
-    ETF_name- string you want displayed, ticker will do
-    MACRO_name- string you want displayed for macro measurement
+        MACRO- the macro df, typically from master_macro_table.csv
+        ETF- ETF df
+        ETF_name- string you want displayed, ticker will do
+        MACRO_name- string you want displayed for macro measurement
 
-    problems: units, not every macro is the same
+        problems: units, not every macro is the same
     '''
     # Put into one table
     data = pd.concat([ETF, MACRO], axis=1)

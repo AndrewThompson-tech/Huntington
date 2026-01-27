@@ -6,7 +6,7 @@ Clean up CSV files and put them into a master set
 '''
 
 def read_quarterly(csv_file):
-    # Make monthly-quarterly adjustments
+    # Make monthly->quarterly adjustments
     df = pd.read_csv(csv_file)
 
     if 'observation_date' not in df.columns:

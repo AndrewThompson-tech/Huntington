@@ -1,20 +1,20 @@
-Use macro-economic data to predict Industry/Sector ETF or basket of equities
+Use macro economic data to predict Industry/Sector trends. 
+
+Plan is to start simple, get familar with data, find correlations, make some graphs, and develop 
+a solid workflow.
 
 
-Global Industry Classification Standard (GICS)
-11 sectors of S&P
-    1. Information Technology
-    2. Health Care
-    3. Financials
-    4. Consumer Discretionary
-    5. Communication Services
-    6. Industrials
-    7. Consumer Staples
-    8. Energy
-    9. Utilities
-    10. Real Estate
-    11. Materials
-    https://www.ssga.com/
+Index
+    data_cleanse.py- couple functions that are compatible with FRED data and a yfinance API wrapper
+    analysis.py- function for data correlation and graphing of two variables
+    main.py- program driver
 
-25 industry groups of the S&P sectors- https://en.wikipedia.org/wikiGlobal_Industry_Classification_Standard
+    data
+        |_cleanedData- manipulated CSVs that are ready for main.py 
+        |_raw_data- origionally downloaded data sets
 
+    info- thoughts, research, and definitions
+
+    plots- saved graphs, take them with a grain of salt right now
+
+    random- functions and scripts in testing
