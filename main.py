@@ -1,31 +1,56 @@
-from analysis import graph, correlation
+from data_cleanse import *
+from linearRegression import linear_regression
 import pandas as pd
 
-def fix_pd(csv_file):
-    ETF = pd.read_csv(csv_file)
-    ETF['observation_date'] = pd.to_datetime(ETF['observation_date'])
-    ETF.set_index('observation_date', inplace=True)
-    return ETF
+
+
+PROCESSING = {
+    "read" : read_csv_standard,
+    "quarterly" : read_quarterly,
+    "MoM" : MoM,
+    "interpolate_monthly" : interpolate_monthly,
+    "YoY" : YoY
+}
+
+TABLE_CONFIG = {
+    "GDP": {
+        "path": "data/raw_data/GDP.csv",
+        "pipeline": ["read", "interpolate_monthly"],
+        "shift": 3
+    },
+    "UNRATE": {
+        "path": "data/raw_data/UNRATE.csv",
+        "pipeline": ["read"],
+        "shift": 3
+    },
+    "MCOILWTICO": {
+        "path": "data/raw_data/MCOILWTICO.csv",
+        "pipeline": ["read"],
+        "shift": 3
+    },
+    "PCEPI": {
+        "path": "data/raw_data/PCEPI.csv",
+        "pipeline": ["read"],
+        "shift":  3 
+    },
+     "FEDFUNDS": {
+        "path": "data/raw_data/FEDFUNDS.csv",
+        "pipeline": ["read"],
+        "shift": 3
+    }
+}
+
+master_table(TABLE_CONFIG, PROCESSING)
 
 # Get data
-ETF = fix_pd('data/cleanedData/XLE_quarterly.csv')
+ETF = fix_pd('data/raw_data/XLE_monthly.csv')
+
 ETF = ETF['Close']
-MACRO = fix_pd('data/cleanedData/master_macro_table.csv')
+MACRO = fix_pd('monthly_master_macro_table.csv')
 
 master_table = MACRO.merge(ETF, on='observation_date', how='left')
+x = master_table[["GDP", "UNRATE", "MCOILWTICO", "PCEPI", "FEDFUNDS"]]
+y = master_table["Close"]
 
-print(master_table.head)
-
-# Analysis
-
-# What now? You have some valuabvle functions and can start crunching numbers. 
-#   First, pick one sector
-#   Two, measure correlations, lots of them
-#   Three, graphs
-#   Four time series
-correlation(master_table, 'XLE')
-
-
-MACRO_specific = MACRO['PCEPI']
-graph(MACRO_specific, ETF, "XLE", "PCEPI")
+linear_regression(x, y)
 

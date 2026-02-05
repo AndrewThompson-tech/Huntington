@@ -13,3 +13,13 @@ Intrest rate
 
 Oil prices
     MCOILWTICO.csv- Dollars per Barrel, Not Seasonally Adjusted, monthly- https://fred.stlouisfed.org/series/MCOILWTICO
+
+Industrial production total index
+    INDPRO.csv- output of mining, construction, utilites, and manfacturing. Measured monthly, seasonally adjusted- https://fred.stlouisfed.org/series/INDPRO
+
+Total vehicle sales
+    TOTALSA.csv- millions of units sold, seasinally adjusted annual rate, monthly- https://fred.stlouisfed.org/series/TOTALSA
+
+Producer price index by commodity: Fuels and power
+    PPIENG.csv- tracks prices that US producers recieve for crude oil, natural gas, coal, electricty, etc. Not seasonally adjusted, monthly- https://fred.stlouisfed.org/series/PPIENG
+    

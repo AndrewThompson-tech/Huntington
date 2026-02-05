@@ -1,0 +1,77 @@
+M1.0
+TABLE_CONFIG = {
+    "PCEPI": {
+        "path": "data/raw_data/PCEPI.csv",
+        "pipeline": ["read"],
+        "shift": 0
+    },
+    "GDP": {
+        "path": "data/raw_data/GDP.csv",
+        "pipeline": ["read", "interpolate_monthly"],
+        "shift": 0
+    },
+    "UNRATE": {
+        "path": "data/raw_data/UNRATE.csv",
+        "pipeline": ["read"],
+        "shift": 0
+    },
+    "FEDFUNDS": {
+        "path": "data/raw_data/FEDFUNDS.csv",
+        "pipeline": ["read"], 
+        "shift": 0
+    },
+    "MCOILWTICO": {
+        "path": "data/raw_data/MCOILWTICO.csv",
+        "pipeline": ["read"],
+        "shift": 0
+    }
+}
+
+M2.0
+TABLE_CONFIG = {
+    "GDP": {
+        "path": "data/raw_data/GDP.csv",
+        "pipeline": ["read", "interpolate_monthly"],
+        "shift": 0
+    },
+    "UNRATE": {
+        "path": "data/raw_data/UNRATE.csv",
+        "pipeline": ["read"],
+        "shift": 0
+    },
+    "FEDFUNDS": {
+        "path": "data/raw_data/FEDFUNDS.csv",
+        "pipeline": ["read"], 
+        "shift": 0
+    },
+    "MCOILWTICO": {
+        "path": "data/raw_data/MCOILWTICO.csv",
+        "pipeline": ["read"],
+        "shift": 0
+    }
+}
+
+M3.0
+TABLE_CONFIG = {
+    "GDP": {
+        "path": "data/raw_data/GDP.csv",
+        "pipeline": ["read", "interpolate_monthly"],
+        "shift": 3 
+    },
+    "UNRATE": {
+        "path": "data/raw_data/UNRATE.csv",
+        "pipeline": ["read"],
+        "shift": 1
+    },
+    "MCOILWTICO": {
+        "path": "data/raw_data/MCOILWTICO.csv",
+        "pipeline": ["read"],
+        "shift": 0
+    },
+    "PPIENG": {
+        "path": "data/raw_data/PPIENG.csv",
+        "pipeline": ["read", "MoM"],
+        "shift": 1  
+    }
+}
+

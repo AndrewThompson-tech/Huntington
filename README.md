@@ -5,8 +5,9 @@ a solid workflow.
 
 
 Index
-    data_cleanse.py- couple functions that are compatible with FRED data and a yfinance API wrapper
+    data_cleanse.py- functions that are compatible with FRED data and a yfinance API wrapper
     analysis.py- function for data correlation and graphing of two variables
+    linearRegression.py- Simple liear regression with 80/20 split
     main.py- program driver
 
     data
