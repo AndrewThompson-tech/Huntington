@@ -66,7 +66,7 @@ def fix_pd(csv_file):
     ETF.set_index('observation_date', inplace=True)
     return ETF
 
-def master_table(table_config, processing):
+def master_table(table_config, processing, name):
     dfs = []
 
     for series_name, cfg in table_config.items():
@@ -104,10 +104,57 @@ def master_table(table_config, processing):
     master = master.dropna()
 
     # Save
-    master.to_csv("monthly_master_macro_table.csv")
+    master.to_csv(f"{name}.csv")
 
     return master
 
+if __name__ == "__main__":
+    PROCESSING = {
+        "read" : read_csv_standard,
+        "quarterly" : read_quarterly,
+        "MoM" : MoM,
+        "interpolate_monthly" : interpolate_monthly,
+        "YoY" : YoY
+    }
 
+    TABLE_CONFIG = {
+        "GDP": {
+            "path": "data/raw_data/GDP.csv",
+            "pipeline": ["read", "interpolate_monthly"],
+            "shift": 0
+        },
+        "UNRATE": {
+            "path": "data/raw_data/UNRATE.csv",
+            "pipeline": ["read"],
+            "shift": 0
+        },
+        "MCOILWTICO": {
+            "path": "data/raw_data/MCOILWTICO.csv",
+            "pipeline": ["read"],
+            "shift": 0
+        },
+        "PCEPI": {
+            "path": "data/raw_data/PCEPI.csv",
+            "pipeline": ["read"],
+            "shift":  0
+        },
+        "TOTALSA": {
+            "path": "data/raw_data/TOTALSA.csv",
+            "pipeline": ["read"],
+            "shift": 0
+        },
+        "INDPRO": {
+            "path": "data/raw_data/INDPRO.csv",
+            "pipeline": ["read"],
+            "shift": 0
+        },
+        "PPIENG": {
+            "path": "data/raw_data/PPIENG.csv",
+            "pipeline": ["read"],
+            "shift": 0
+        }
+    }
+
+    master_table(TABLE_CONFIG, PROCESSING, "all_macros")
 
 

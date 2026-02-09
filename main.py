@@ -1,8 +1,6 @@
 from data_cleanse import *
 from linearRegression import linear_regression
-import pandas as pd
-
-
+from PCA import dynamic_pca
 
 PROCESSING = {
     "read" : read_csv_standard,
@@ -13,43 +11,45 @@ PROCESSING = {
 }
 
 TABLE_CONFIG = {
+    "PCEPI": {
+        "path": "data/raw_data/PCEPI.csv",
+        "pipeline": ["read"],
+        "shift": 0
+    },
     "GDP": {
         "path": "data/raw_data/GDP.csv",
         "pipeline": ["read", "interpolate_monthly"],
-        "shift": 3
+        "shift": 0
     },
     "UNRATE": {
         "path": "data/raw_data/UNRATE.csv",
         "pipeline": ["read"],
-        "shift": 3
+        "shift": 0
+    },
+    "FEDFUNDS": {
+        "path": "data/raw_data/FEDFUNDS.csv",
+        "pipeline": ["read"], 
+        "shift": 0
     },
     "MCOILWTICO": {
         "path": "data/raw_data/MCOILWTICO.csv",
         "pipeline": ["read"],
-        "shift": 3
-    },
-    "PCEPI": {
-        "path": "data/raw_data/PCEPI.csv",
-        "pipeline": ["read"],
-        "shift":  3 
-    },
-     "FEDFUNDS": {
-        "path": "data/raw_data/FEDFUNDS.csv",
-        "pipeline": ["read"],
-        "shift": 3
+        "shift": 0
     }
 }
 
-master_table(TABLE_CONFIG, PROCESSING)
+MACRO = master_table(TABLE_CONFIG, PROCESSING, "all_macros")
 
-# Get data
+MACRO_pca= dynamic_pca(MACRO, correlation_threshold=0.8, variance_explained=0.95)
+MACRO_pca.to_csv('pca_macros.csv')
+
+# # Get data
 ETF = fix_pd('data/raw_data/XLE_monthly.csv')
 
-ETF = ETF['Close']
-MACRO = fix_pd('monthly_master_macro_table.csv')
+master_table = MACRO_pca.merge(ETF, on='observation_date', how='left')
 
-master_table = MACRO.merge(ETF, on='observation_date', how='left')
-x = master_table[["GDP", "UNRATE", "MCOILWTICO", "PCEPI", "FEDFUNDS"]]
+
+x = master_table.drop(columns=["Close", "High", "Low", "Open", "Volume"])
 y = master_table["Close"]
 
 linear_regression(x, y)
