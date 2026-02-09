@@ -32,6 +32,41 @@ M2.0
     FEDFUNDS     -0.236222
     MCOILWTICO    0.142492
 
+M2.5
+    Correlated Groups: [['GDP', 'PCEPI']]
+    Mean Squared Error: 33.70528149402432
+    R^2 Score: 0.6879875027725331
+
+    Standardized Coefficients:
+    GDP_PCEPI_PC1    7.407076
+    UNRATE          -0.672029
+    FEDFUNDS         1.063576
+    MCOILWTICO       3.512985
+
+    Model Coefficients:
+    GDP_PCEPI_PC1    5.136582
+    UNRATE          -0.604076
+    FEDFUNDS        -0.176276
+    MCOILWTICO       0.133367
+
+M2.6
+    Correlated Groups: [['GDP', 'PCEPI']]
+    Mean Squared Error: 29.976845397128564
+    R^2 Score: 0.7225019351042055
+
+    Standardized Coefficients:
+    GDP_PCEPI_PC1    7.444952
+    UNRATE          -0.619741
+    FEDFUNDS         1.045212
+    MCOILWTICO       3.423575
+    dtype: float64
+
+    Model Coefficients:
+    GDP_PCEPI_PC1    5.174706
+    UNRATE          -0.445999
+    FEDFUNDS        -0.084562
+    MCOILWTICO       0.126583
+
 M3.0
     Mean Squared Error: 28.453434065067896
     R^2 Score: 0.7274451278874792
@@ -47,3 +82,43 @@ M3.0
     UNRATE       -0.416928
     MCOILWTICO    0.147895
     PPIENG       -0.010647
+
+M4.0
+    Mean Squared Error: 42.84303749953353
+    R^2 Score: 0.6033985616939757
+
+    Standardized Coefficients:
+    GDP_PCEPI_PC1            7.553903
+    MCOILWTICO_PPIENG_PC1    4.019003
+    MCOILWTICO_PPIENG_PC2    0.861418
+    UNRATE                  -0.868633
+    TOTALSA                  1.255585
+    INDPRO                  -0.627690
+
+    Model Coefficients:
+    GDP_PCEPI_PC1            4.503290
+    MCOILWTICO_PPIENG_PC1    1.877645
+    MCOILWTICO_PPIENG_PC2    1.791795
+    UNRATE                   0.401140
+    TOTALSA                  0.378394
+    INDPRO                   0.309212
+
+M5.0
+    Mean Squared Error: 31.47257465232903
+    R^2 Score: 0.7086558492860522
+
+    Standardized Coefficients:
+    GDP_PCEPI_PC1    7.351740
+    UNRATE          -0.624221
+    MCOILWTICO       3.872138
+    TOTALSA          1.161008
+    INDPRO          -0.321599
+    PPIENG          -0.423440
+
+    Model Coefficients:
+    GDP_PCEPI_PC1    5.303540
+    UNRATE           0.022699
+    MCOILWTICO       0.137360
+    TOTALSA          0.569219
+    INDPRO          -0.066050
+    PPIENG          -0.009635

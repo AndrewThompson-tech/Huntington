@@ -23,3 +23,5 @@ Total vehicle sales
 Producer price index by commodity: Fuels and power
     PPIENG.csv- tracks prices that US producers recieve for crude oil, natural gas, coal, electricty, etc. Not seasonally adjusted, monthly- https://fred.stlouisfed.org/series/PPIENG
     
+Total Constuction Spending in USA
+    TTLCONS.csv- Spending in millions of dollars, Seasonally Adjusted Annual Rate, monthly, https://fred.stlouisfed.org/series/TTLCONS

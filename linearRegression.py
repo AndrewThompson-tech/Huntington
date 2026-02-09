@@ -62,3 +62,4 @@ def linear_regression(x, y):
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+
