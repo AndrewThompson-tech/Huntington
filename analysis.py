@@ -45,6 +45,7 @@ def graph(MACRO, ETF,  ETF_name, MACRO_name):
     plt.savefig(f'plots/{ETF_name}_vs_{MACRO_name}.png')
     plt.show()
 
+
 '''
 ETF = fix_pd('data/cleanedData/XLE_quarterly.csv')
 ETF = ETF['Close']
@@ -59,3 +60,4 @@ correlation(master_table, 'XLE')
 MACRO_specific = MACRO['PCEPI']
 graph(MACRO_specific, ETF, "XLE", "PCEPI")
 '''
+
