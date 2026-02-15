@@ -10,7 +10,7 @@ Engine Inputs:
     5) The window size for chunking, allows use to try different windows to test for differences can test (3 years, 5 years, 7 years, etc)
 '''
 
-def run_correlation_engine(master_df: pd.DataFrame, macro_variables: list, etf_tickers: list, window_size: int, lags: int):
+def run_correlation_engine(master_df: pd.DataFrame, macro_columns: list, etf_columns: list, window_size: int, lags: int):
     """
     Simply calls all other fucntions from the package
 
