@@ -9,18 +9,27 @@ Engine Inputs:
     4) List of all etf tickers; will be important for separating the master_table
     5) The window size for chunking, allows use to try different windows to test for differences can test (3 years, 5 years, 7 years, etc)
 '''
+import sys
+print(sys.path)
+from .preprocessing import enforce_stationary
+from .analyzer import chunkify, compute_lagged_correlations, aggregate_lags
+from .config_generator import generate_json_config
 
-def run_correlation_engine(master_df: pd.DataFrame, macro_columns: list, etf_columns: list, window_size: int, lags: int):
-    """
-    Simply calls all other fucntions from the package
+def run_correlation_engine(master_df: pd.DataFrame, macro_columns: list, etf_columns: list, window_size: int, lags: int, generate_config=False):
+    # ensure all data is stationary
+    stationary_df, macro_transformations, etf_transformations = enforce_stationary(master_df, macro_columns, etf_columns)
+    
+    # create window chunks
+    chunked_dfs = chunkify(stationary_df, window_size)
 
-    Ex:
-        call split_macro_and_etf(); from data_laoder.py
-        call create_time_windows(); from analyzer.py
-        call compute_lagged_correlations(); from analyzer.py
-        call aggregate_lags(); from analyzer.py
-        
-        if file doesn't already exist in ____filepath:
-            call config_generator.py
-    """
-    pass
+    # compute the best lag of each macro against each etf for each window
+    all_window_lags = compute_lagged_correlations(chunked_dfs, macro_columns, etf_columns, lags)
+
+    # determine the mode lag (best_lag) of each macro
+    optimal_lags = aggregate_lags(all_window_lags)
+
+    # only if the user wants to generate a json config 
+    if generate_config:
+        generate_json_config(optimal_lags)
+
+    return optimal_lags
