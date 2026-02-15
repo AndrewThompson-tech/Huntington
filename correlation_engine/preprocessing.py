@@ -1,8 +1,7 @@
 import pandas as pd
 import numpy as np
 from statsmodels.tsa.stattools import adfuller
-import sys
-print(sys.path)
+
 def enforce_stationary(master_df: pd.DataFrame, macro_columns: list, etf_columns: list): 
    master_df_transformed = master_df.copy() # just incase we want to use both df's in the future
    etf_transformations = {

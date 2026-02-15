@@ -18,6 +18,8 @@ Preprocessing.py:
     Macros
         Same process as for etf's; instead of using pct_change() use .diff() both times
 
+------------------------------------------------------------------------------------------------
+
 Analyzer.py:
     Chunkify():
         Generates the windows to be correlated; stepped yearly.
@@ -59,3 +61,32 @@ Analyzer.py:
                 'macro_variable_name2': optimal_lag
             }
         }
+
+-------------------------------------------------------------------------------------------------------------
+
+Config_Generator.py:
+    generate_json_config():
+        Create json object to store the optimal lag for macro variable; for each etf
+
+-------------------------------------------------------------------------------------------------------------
+
+Engine.py:
+    Inputs:
+        1) Master_table --> Observation_date as index (interpolated monthly), all macro variables, all etf tickers
+        2) Range of lags --> (-12 to 12) totaling 25 total lags
+        3) List of all macro variables; will be important for separating the master_table
+        4) List of all etf tickers; will be important for separating the master_table
+        5) The window size for chunking, allows use to try different windows to test for differences can test (3 years, 5 years, 7 years, etc)
+        6) (optional) Boolean of whether or not to generate a json object of the output
+    
+    run_correlation_engine():
+        Simply calls all other functions from the package
+
+        Ex:
+            call enforce_stationary(); from preprocessing.py
+            call chunkify(); from analyzer.py
+            call compute_lagged_correlations(); from analyzer.py
+            call aggregate_lags(); from analyzer.py
+            
+            if user wants a json_config:
+                call generate_json_config; from config_generator.py

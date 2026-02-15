@@ -1,22 +1,10 @@
 import pandas as pd
-'''
-This file works as the main.py file for the correlation engine
-
-Engine Inputs:
-    1) Master_table --> Observation_date as index (interpolated monthly), all macro variables, all etf tickers
-    2) Range of lags --> (-12 to 12) totaling 25 total lags
-    3) List of all macro variables; will be important for separating the master_table
-    4) List of all etf tickers; will be important for separating the master_table
-    5) The window size for chunking, allows use to try different windows to test for differences can test (3 years, 5 years, 7 years, etc)
-'''
-import sys
-print(sys.path)
 from .preprocessing import enforce_stationary
 from .analyzer import chunkify, compute_lagged_correlations, aggregate_lags
 from .config_generator import generate_json_config
 
 def run_correlation_engine(master_df: pd.DataFrame, macro_columns: list, etf_columns: list, window_size: int, lags: int, generate_config=False):
-    # ensure all data is stationary
+    # ensure all data is stationary; transformations are 
     stationary_df, macro_transformations, etf_transformations = enforce_stationary(master_df, macro_columns, etf_columns)
     
     # create window chunks
@@ -30,6 +18,9 @@ def run_correlation_engine(master_df: pd.DataFrame, macro_columns: list, etf_col
 
     # only if the user wants to generate a json config 
     if generate_config:
-        generate_json_config(optimal_lags)
+        generate_json_config(optimal_lags, file_name='optimal_lags')
+        generate_json_config(macro_transformations, file_name='macro_transformations')
+        generate_json_config(etf_transformations, file_name='etf_transformations')
+
 
     return optimal_lags
