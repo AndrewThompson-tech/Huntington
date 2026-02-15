@@ -3,16 +3,17 @@ Defines the imports for the package
 
 Shows the Public API for running the corellation engine
 """
+from .engine import run_correlation_engine
+from .preprocessing import enforce_stationary, isStationary
+from .analyzer import chunkify, compute_lagged_correlations, aggregate_lags
+from .config_generator import generate_json_config
 
-"""
-Example of how the __init__.py file should look:
-
-from .data_loader import fucntion_1, function_2, etc.
-from .engine import function_3, etc.
-
-__all__ = {
-    "function_1",
-    "function_2",
-    "fucntion_3", etc.
+_all_ = {
+    run_correlation_engine,
+    enforce_stationary,
+    isStationary,
+    chunkify,
+    compute_lagged_correlations,
+    aggregate_lags,
+    generate_json_config
 }
-"""

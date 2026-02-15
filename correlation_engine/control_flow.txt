@@ -1,0 +1,92 @@
+Preprocessing.py:
+    For each ETF:
+        Run ADF on etf
+            If stationary:
+                Store transformation = 0
+                Continue
+            Else:
+                Convert to returns (pct_change)
+                Run ADF again
+            If stationary:
+                Store transformation = 1
+                Continue
+            Else:
+                Difference once more
+                Re-run ADF
+                Store transformation = 2
+                Continue regardless
+    Macros
+        Same process as for etf's; instead of using pct_change() use .diff() both times
+
+------------------------------------------------------------------------------------------------
+
+Analyzer.py:
+    Chunkify():
+        Generates the windows to be correlated; stepped yearly.
+        Example:
+            If window_years = 5
+                2000-2004
+                2001-2005
+                2002-2006 
+                etc.    
+        Becomes more dynamic because we can test with multiple different windows (different years).
+    
+    Compute_lagged_correlations():
+        Determine the optimal lag for each n-year chunk for every macro_variable across all etfs
+        
+        Returns something like this: 
+        {
+            'ETF_name1': {
+                'macro_variable_name1': [best_lag_for_window1, best_lag_for_window2, etc.]
+                'macro_variable_name2': [best_lag_for_window1, best_lag_for_window2, etc.]
+            }
+            
+            'ETF_name2': {
+                'macro_variable_name': [best_lag_for_window1, best_lag_for_window2, etc.]
+            }
+        }
+
+    Aggregate_lags():
+        Takes in the output from the compute_lagged_correlations() function
+            - for each etf, for each macro_variable, compute the mode; mode = best/most_consistent lag for that macro variable
+            
+        Returns something like this (optimal_lags):
+        {
+            'ETF_name_1': {
+                'macro_variable_name1': optimal_lag
+                'macro_variable_name2': optimal_lag
+            }
+            'ETF_name_2': {
+                'macro_variable_name1': optimal_lag
+                'macro_variable_name2': optimal_lag
+            }
+        }
+
+-------------------------------------------------------------------------------------------------------------
+
+Config_Generator.py:
+    generate_json_config():
+        Create json object to store the optimal lag for macro variable; for each etf
+
+-------------------------------------------------------------------------------------------------------------
+
+Engine.py:
+    Inputs:
+        1) Master_table --> Observation_date as index (interpolated monthly), all macro variables, all etf tickers
+        2) Range of lags --> (-12 to 12) totaling 25 total lags
+        3) List of all macro variables; will be important for separating the master_table
+        4) List of all etf tickers; will be important for separating the master_table
+        5) The window size for chunking, allows use to try different windows to test for differences can test (3 years, 5 years, 7 years, etc)
+        6) (optional) Boolean of whether or not to generate a json object of the output
+    
+    run_correlation_engine():
+        Simply calls all other functions from the package
+
+        Ex:
+            call enforce_stationary(); from preprocessing.py
+            call chunkify(); from analyzer.py
+            call compute_lagged_correlations(); from analyzer.py
+            call aggregate_lags(); from analyzer.py
+            
+            if user wants a json_config:
+                call generate_json_config; from config_generator.py

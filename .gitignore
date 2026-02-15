@@ -1,3 +1,10 @@
-random/
-env
-to_do.txt
+# Ignore virtual environment
+venv/
+
+# Ignore test file
+test.py
+
+# Ignore cache files
+__pycache__/
+*.py[cod]
+*.pyo
