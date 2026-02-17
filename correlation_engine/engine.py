@@ -7,6 +7,8 @@ def run_correlation_engine(master_df: pd.DataFrame, macro_columns: list, etf_col
     # ensure all data is stationary; transformations are 
     stationary_df, macro_transformations, etf_transformations = enforce_stationary(master_df, macro_columns, etf_columns)
     
+    print(stationary_df.head)
+
     # create window chunks
     chunked_dfs = chunkify(stationary_df, window_size)
 

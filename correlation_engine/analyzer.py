@@ -38,7 +38,11 @@ def compute_lagged_correlations(chunked_df: list[pd.DataFrame], macro_columns: l
         # utilizes pandas insanely optimal vectorizations; thanks to some cool C implementation
         for lag in range(start_lag, end_lag):  
             shifted_macro_df = temp_macro_df.shift(lag)
-            curr_corr_matrix = shifted_macro_df.corr(temp_etf_df)
+            # curr_corr_matrix = shifted_macro_df.corr(temp_etf_df)
+            combined = pd.concat([shifted_macro_df, temp_etf_df], axis=1)
+            corr_matrix = combined.corr()
+            curr_corr_matrix = corr_matrix.loc[macro_columns, etf_columns]
+
 
             if best_corr_matrix is None: # handles the first iteration for each window
                 best_corr_matrix =  curr_corr_matrix.copy() # we want a deep copy 
