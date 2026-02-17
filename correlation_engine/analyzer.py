@@ -33,12 +33,16 @@ def compute_lagged_correlations(chunked_df: list[pd.DataFrame], macro_columns: l
         temp_etf_df = window[etf_columns]
         temp_macro_df = window[macro_columns]
         best_corr_matrix = None 
-        best_lag_matrix = pd.DataFrame(index=etf_columns, columns=macro_columns)
+        best_lag_matrix = pd.DataFrame(index=macro_columns, columns=etf_columns)
 
         # utilizes pandas insanely optimal vectorizations; thanks to some cool C implementation
         for lag in range(start_lag, end_lag):  
             shifted_macro_df = temp_macro_df.shift(lag)
-            curr_corr_matrix = shifted_macro_df.corr(temp_etf_df)
+
+            # create current corr matrix (index=macros, columns=etfs)
+            combined_matrix = pd.concat([shifted_macro_df, temp_etf_df], axis=1)
+            curr_corr_matrix = combined_matrix.corr() 
+            curr_corr_matrix = curr_corr_matrix.loc[macro_columns, etf_columns] 
 
             if best_corr_matrix is None: # handles the first iteration for each window
                 best_corr_matrix =  curr_corr_matrix.copy() # we want a deep copy 
@@ -51,7 +55,7 @@ def compute_lagged_correlations(chunked_df: list[pd.DataFrame], macro_columns: l
         # append the results into our output 
         for etf in etf_columns:
             for macro in macro_columns:
-                all_window_lags[etf][macro].append(best_lag_matrix.loc[etf, macro])
+                all_window_lags[etf][macro].append(best_lag_matrix.loc[macro, etf])
     
     return all_window_lags
 
