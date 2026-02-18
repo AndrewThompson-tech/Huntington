@@ -7,8 +7,6 @@ def run_correlation_engine(master_df: pd.DataFrame, macro_columns: list, etf_col
     # ensure all data is stationary; transformations are 
     stationary_df, macro_transformations, etf_transformations = enforce_stationary(master_df, macro_columns, etf_columns)
     
-    print(stationary_df.head)
-
     # create window chunks
     chunked_dfs = chunkify(stationary_df, window_size)
 
@@ -17,6 +15,7 @@ def run_correlation_engine(master_df: pd.DataFrame, macro_columns: list, etf_col
 
     # determine the mode lag (best_lag) of each macro
     optimal_lags = aggregate_lags(all_window_lags)
+    # print(f"Optimal Lags: {optimal_lags}")
 
     # only if the user wants to generate a json config 
     if generate_config:
@@ -24,5 +23,5 @@ def run_correlation_engine(master_df: pd.DataFrame, macro_columns: list, etf_col
         generate_json_config(macro_transformations, file_name='macro_transformations')
         generate_json_config(etf_transformations, file_name='etf_transformations')
 
-
+    print(optimal_lags)
     return optimal_lags
