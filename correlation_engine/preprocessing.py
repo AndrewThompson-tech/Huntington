@@ -63,6 +63,20 @@ def enforce_stationary(master_df: pd.DataFrame, macro_columns: list, etf_columns
 
 # Helper function
 def isStationary(series: pd.Series) -> bool:
+   '''
+   Determine whether a time series is stationary using the 
+   Augmented Dickey-Fuller (ADF) test.
+
+   The ADF test evaluates the null hypothesis that a unit root
+   is present in the series (i.e., the series is non-stationary).
+   If the p-value is below the chosen significance level (typically 0.05),
+   the null hypothesis is rejected and the series is considered stationary.
+   
+   :param series: Description
+   :type series: pd.Series
+   :return: Description
+   :rtype: bool
+   '''
    adf_test_results = adfuller(series.dropna()) # Returns a list of info about that pandas series
    p_value = adf_test_results[1] 
    significance_level = 0.05 # 95th percentile

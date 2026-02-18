@@ -1,7 +1,7 @@
 """
 Defines the imports for the package
 
-Shows the Public API for running the corellation engine
+Shows the Public API for running the correlation engine
 """
 from .engine import run_correlation_engine
 from .preprocessing import enforce_stationary, isStationary
