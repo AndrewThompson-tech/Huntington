@@ -1,0 +1,50 @@
+dict{
+    {'1 Year':
+        {'XLE': {'PCEPI': -12, 'GDP': -12, 'UNRATE': -12, 'FEDFUNDS': -12, 'MCOILWTICO': -12}},
+        {'QQQ': {'PCEPI': -12, 'GDP': -12, 'UNRATE': -12, 'FEDFUNDS': -12, 'MCOILWTICO': -12}}
+    }
+    {'2 Years':
+        {'XLE': {'PCEPI': -1, 'GDP': 12, 'UNRATE': -12, 'FEDFUNDS': -9, 'MCOILWTICO': -10},}    
+        {'QQQ': {'PCEPI': 9, 'GDP': 8, 'UNRATE': 12, 'FEDFUNDS': -11, 'MCOILWTICO': 10}}
+    }
+    {'3 Years':
+        {'XLE': {'PCEPI': -1, 'GDP': 2, 'UNRATE': 7, 'FEDFUNDS': -10, 'MCOILWTICO': -10},}    
+        {'QQQ': {'PCEPI': 4, 'GDP': 2, 'UNRATE': -2, 'FEDFUNDS': -2, 'MCOILWTICO': 2}}
+    }
+    {'4 Years':
+        {'XLE': {'PCEPI': -1, 'GDP': 2, 'UNRATE': -11, 'FEDFUNDS': 12, 'MCOILWTICO': 4},}      
+        {'QQQ': {'PCEPI': -1, 'GDP': 2, 'UNRATE': -2, 'FEDFUNDS': -2, 'MCOILWTICO': 2}}
+    }
+    {'5 Years':
+        {'XLE': {'PCEPI': -1, 'GDP': 2, 'UNRATE': 7, 'FEDFUNDS': 7, 'MCOILWTICO': 4},}        
+        {'QQQ': {'PCEPI': -3, 'GDP': 2, 'UNRATE': -2, 'FEDFUNDS': -12, 'MCOILWTICO': 2}}
+    }
+    {'6 Years':
+        {'XLE': {'PCEPI': -1, 'GDP': 2, 'UNRATE': 7, 'FEDFUNDS': 7, 'MCOILWTICO': 4},}          
+        {'QQQ': {'PCEPI': -1, 'GDP': 2, 'UNRATE': -2, 'FEDFUNDS': 12, 'MCOILWTICO': 2}}
+    }
+    {'7 Years':
+        {'XLE': {'PCEPI': -1, 'GDP': 2, 'UNRATE': 7, 'FEDFUNDS': 12, 'MCOILWTICO': -2},}        
+        {'QQQ': {'PCEPI': -1, 'GDP': 2, 'UNRATE': -2, 'FEDFUNDS': 12, 'MCOILWTICO': 2}}
+    }
+    {'8 Years':
+        {'XLE': {'PCEPI': -1, 'GDP': 2, 'UNRATE': -11, 'FEDFUNDS': 12, 'MCOILWTICO': -2},}      
+        {'QQQ': {'PCEPI': -1, 'GDP': 2, 'UNRATE': -2, 'FEDFUNDS': 12, 'MCOILWTICO': 2}}
+    }
+    {'9 Years':
+        {'XLE': {'PCEPI': -1, 'GDP': 2, 'UNRATE': 7, 'FEDFUNDS': 7, 'MCOILWTICO': -2},}        
+        {'QQQ': {'PCEPI': -1, 'GDP': 2, 'UNRATE': -2, 'FEDFUNDS': 12, 'MCOILWTICO': 2}}
+    }
+    {'10 Years':
+        {'XLE': {'PCEPI': -1, 'GDP': 2, 'UNRATE': 7, 'FEDFUNDS': 12, 'MCOILWTICO': -2},}      
+        {'QQQ': {'PCEPI': -1, 'GDP': 2, 'UNRATE': -2, 'FEDFUNDS': 12, 'MCOILWTICO': 2}}
+    }
+    {'11 Years':
+        {'XLE': {'PCEPI': -1, 'GDP': 2, 'UNRATE': 7, 'FEDFUNDS': -12, 'MCOILWTICO': -3},}      
+        {'QQQ': {'PCEPI': -1, 'GDP': 2, 'UNRATE': -2, 'FEDFUNDS': 12, 'MCOILWTICO': 2}}
+    }
+    {'12 Years':
+        {'XLE': {'PCEPI': -1, 'GDP': 2, 'UNRATE': 7, 'FEDFUNDS': -12, 'MCOILWTICO': -2},}      
+        {'QQQ': {'PCEPI': -1, 'GDP': 2, 'UNRATE': -2, 'FEDFUNDS': 12, 'MCOILWTICO': 2}}
+    }
+}
