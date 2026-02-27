@@ -1,0 +1,82 @@
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+from statsmodels.stats.stattools import durbin_watson
+from statsmodels.stats.diagnostic import het_breuschpagan
+
+def run_macro_validation(y, X):
+    """
+    Step 1: Initial Model Fit
+    """
+    # Ensure a constant (intercept) is added - crucial for macro models
+    if 'const' not in X.columns:
+        X = sm.add_constant(X)
+        
+    model = sm.OLS(y, X).fit()
+    
+    print("="*60)
+    print("      MACRO MODEL DIAGNOSTIC SUMMARY")
+    print("="*60)
+
+    # --- 1. THE VALIDATION REPORT (Interpretation) ---
+    issues_found = []
+    
+    # Check T-Values
+    p_values = model.pvalues
+    for var, p in p_values.items():
+        if p > 0.05:
+            issues_found.append(f"SIGNIFICANCE: {var} is unintuitive (p={p:.3f}). It's not statistically helping the model.")
+
+    # Check Heteroskedasticity (Breusch-Pagan)
+    _, bp_p, _, _ = het_breuschpagan(model.resid, X)
+    if bp_p < 0.05:
+        issues_found.append(f"HETERO: Breusch-Pagan failed (p={bp_p:.3f}). Your error variance isn't constant.")
+
+    # Check Serial Correlation (Durbin-Watson)
+    dw_stat = durbin_watson(model.resid)
+    if dw_stat < 1.5 or dw_stat > 2.5:
+        issues_found.append(f"SERIAL: Durbin-Watson is {dw_stat:.2f}. Errors are correlated over time.")
+
+    # Print the Human-Readable Report
+    for issue in issues_found:
+        print(f"⚠️ {issue}")
+    if not issues_found:
+        print("✅ No major violations detected in first pass!")
+
+    # --- 2. THE AUTO_REFINE FUNCTION (The Fixes) ---
+    print("\n--- AUTO-REFINE: Applying Fixes ---")
+    refined_model = model
+    
+    # Fix Heteroskedasticity & Serial Correlation using Robust Standard Errors (HAC/Newey-West)
+    if bp_p < 0.05 or dw_stat < 1.5 or dw_stat > 2.5:
+        print("Refining: Applying Newey-West (HAC) adjustment to correct SEs...")
+        refined_model = sm.OLS(y, X).fit(cov_type='HAC', cov_kwds={'maxlags': 1})
+    else:
+        print("Refining: Standard OLS is sufficient.")
+
+    # --- 3. MODEL HEALTH SCORE ---
+    # Logic: Start at 100, deduct points for technical "sins"
+    score = 100
+    if bp_p < 0.05: score -= 25  # Heteroskedasticity is a major assumption breach
+    if dw_stat < 1.5 or dw_stat > 2.5: score -= 25 # Serial correlation ruins T-stats
+    
+    # Deduct 10 points for every insignificant variable (dead weight)
+    insignificant_vars = sum(1 for p in p_values if p > 0.05)
+    score -= (insignificant_vars * 10)
+    
+    # Bonus for high R-squared (if it's not suspiciously close to 1.0)
+    if 0.7 < model.rsquared < 0.98: score += 10
+    
+    final_score = max(0, min(100, score)) # Keep between 0-100
+    
+    print(f"\nFINAL MODEL HEALTH SCORE: {final_score}/100")
+    print("="*60)
+    
+    return refined_model
+
+# --- EXAMPLE USAGE ---
+# If you have your data in a pandas dataframe called 'df':
+# target = df['GDP_Growth']
+# features = df[['Interest_Rate', 'Inflation', 'Unemployment']]
+# final_model = run_macro_validation(target, features)
+# print(final_model.summary())
