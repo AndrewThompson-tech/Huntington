@@ -75,7 +75,7 @@ XLY-
      }
 
 XLP-
-        TABLE_CONFIG = {
+    TABLE_CONFIG = {
         "GDP": {
             "path": "data/raw_data/GDP.csv",
             "pipeline": ["read", "interpolate_monthly", "log_diff"],

@@ -20,5 +20,5 @@ XLF
 
 XLY
     GDP, GS10, UNRATE
-    Out-of-sample R²: 0.0536
-    Directional Accuracy: 63.04%
+    Out-of-sample R²: 0.1442
+    Directional Accuracy: 63.84%
