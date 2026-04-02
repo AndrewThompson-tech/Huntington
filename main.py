@@ -1,5 +1,5 @@
 from data_cleanse import *
-from linearRegression import linear_regression, recursive_ordinary_least_squares, window_ordinary_least_squares
+from linearRegression import LinearRegressionModel
 from PCA import dynamic_pca
 from correlation_engine.engine import run_correlation_engine
 from correlation_engine.correlation import correlation
@@ -7,33 +7,15 @@ from statsmodels.graphics.tsaplots import plot_acf
 import matplotlib.pyplot as plt
 
 
-def create_linear_model(
-        PROCESSING,
-        TABLE_CONFIG,
-        etf,
-        use_lag=True,
-        use_pca=True,
-        corr_threshold=0.80,
-        variance_explained=0.90,
-        stability_threshold=0.50,
-        display=False
+def create_linear_model( PROCESSING, TABLE_CONFIG, etf, use_lag=True, use_pca=True, corr_threshold=0.80, 
+                        variance_explained=0.90, stability_threshold=0.50,
     ):
-
     valid_lag = []
 
     MACRO = master_table(TABLE_CONFIG, PROCESSING, "all_macros")
     ETF = fix_pd(etf)
     # print(ETF.head())
     ETF = ETF.pct_change()    
-    
-    # pd.set_option('display.max_rows', None)
-    # pd.set_option('display.max_columns', None)
-    # ETF = ETF[:240]
-    # print(ETF["Close"])
-    # print(ETF["Close"].describe())
-    # print(ETF["Close"].autocorr(lag=12))
-    # plot_acf(ETF["Close"], lags=12)
-    # plt.show()
     
     m_table = MACRO.merge(ETF[['Close']], on='observation_date', how='left')
     m_table = m_table[:240]
@@ -45,50 +27,23 @@ def create_linear_model(
     y = m_table["Close"]
 
     if use_lag:
-        run_correlation_engine(
-            m_table,
-            macros_for_corr,
-            ["Close"],
-            yearly_period,
-            lags,
-            generate_config=True
-        )
-
-        m_table, valid_lag = apply_lag(
-            "optimal_lags.json",
-            m_table,
-            stability_threshold=stability_threshold
-        )
+        run_correlation_engine(m_table, macros_for_corr, ["Close"], yearly_period, lags, generate_config=True)
+        m_table, valid_lag = apply_lag("optimal_lags.json", m_table, stability_threshold=stability_threshold)
 
     print(valid_lag)
-    # NOW remove Close (after lag engine is done)
+    # Now remove Close (after lag engine is done)
     m_table = m_table.drop(columns=["Close"])
 
     if use_pca:
-        MACRO_final = dynamic_pca(
-            m_table,
-            correlation_threshold=corr_threshold,
-            variance_explained=variance_explained
-        )
+        MACRO_final = dynamic_pca(m_table, correlation_threshold=corr_threshold, variance_explained=variance_explained)
         MACRO_final.to_csv("pca_macros.csv")
     else:
         MACRO_final = m_table
 
-    # print(MACRO_final.head())
-    osl, anova = linear_regression(MACRO_final, y, etf)
-    print("--------------------------------------------------********************-----------")
-    summary, final_results= recursive_ordinary_least_squares(MACRO_final, y, etf, output_dir="reports/images")
-    print(summary)
-    print(final_results)
+    lr_model = LinearRegressionModel(MACRO_final, y, etf)
+    # osl, anova = lr_model.linear_regression()
 
-
-    # all_params_df, final_results = window_ordinary_least_squares(MACRO_final, y, etf, output_dir="reports/images")
-    # print(all_params_df)
-    # print(final_results)
-
-    
-    return summary, final_results, valid_lag
-    # return osl, anova, valid_lag
+    return lr_model.linear_regression()
 
 
 if __name__ == "__main__":
@@ -134,7 +89,6 @@ if __name__ == "__main__":
         corr_threshold=0.80,
         variance_explained=0.90,
         stability_threshold=0.50,
-        display=True)
-    # print(create_linear_model(PROCESSING, TABLE_CONFIG, etf, display=False))
+    )
 
 

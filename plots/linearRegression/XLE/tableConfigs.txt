@@ -81,8 +81,8 @@ XLP-
             "pipeline": ["read", "interpolate_monthly", "log_diff"],
             "shift": 0
         },
-        "GS10": {
-            "path": "data/raw_data/GS10.csv",
+        "MCOILWTICO": {
+            "path": "data/raw_data/MCOILWTICO.csv",
             "pipeline": ["read", "log_diff"],
             "shift": 0
         },
