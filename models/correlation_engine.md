@@ -37,7 +37,7 @@ To capture time-varying relationships, the data is divided into overlapping wind
 ### 3. Lagged Correlation Analysis
 For every window, the engine computes correlations between ETFs and lagged macro variables.
 * **Lag Definition ($L$):** Macro variable at $t-L$ is compared with the ETF at time $t$.
-* **Correlation Search:** For $L \in [1, \text{max\_lags}]$:
+* **Correlation Search:** For $L \in [1, \mathrm{max\_lags}]$:
     $$\rho_{X,Y}(L) = \text{Corr}(X_{t-L}, Y_t)$$
 
 **Optimal Lag Selection ($L^*$):**
