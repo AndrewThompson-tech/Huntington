@@ -55,3 +55,27 @@ Currency Strength
 
 Interest Rates
     GS10.csv - Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Percent, Not Seasonally Adjusted, monthly - https://fred.stlouisfed.org/series/GS10
+
+Personal Consumption Expenditures Excluding Food and Energy
+    PCEPILFE.csv- a measure of the prices that people living in the United States, or those buying on their behalf, pay for goods and services.https://fred.stlouisfed.org/series/PCEPILFE
+
+Consumer Price Index for All Urban Consumers: Admission to Movies, Theaters, and Concerts in U.S. City Average
+    CUSR0000SS62031.csv- Admission to Movies, Theaters, and Concerts in U.S. City Average- https://fred.stlouisfed.org/series/CUSR0000SS62031
+
+Consumer Price Index for All Urban Consumers: Recreational Books in U.S. City Average
+    CUUR0000SERG02.csv- https://fred.stlouisfed.org/series/CUUR0000SERG02
+
+Transformer manufactoring
+    PCU335311335311.csv- https://fred.stlouisfed.org/series/PCU335311335311
+
+10 year tresuary
+    T10Y2Y.csv- https://fred.stlouisfed.org/series/T10Y2Y
+
+Treasury Securities at 10-Year Constant Maturity
+    DGS10.csv- https://fred.stlouisfed.org/series/DGS10
+
+Avg food costs
+    CPIUFDSL.csv- Average food cost- https://fred.stlouisfed.org/series/CPIUFDSL
+
+Disposable personal income
+    DSPIC96.csv- https://fred.stlouisfed.org/series/DSPIC96

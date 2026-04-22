@@ -117,7 +117,7 @@ class ARMAFamily:
         For examample, we can predict next month's GDP based on the past 6 months of GDP data. 
         This is useful for macros that have strong autocorrelation.
         '''
-        model = AutoReg(self.train["y"], ags = lags).fit()
+        model = AutoReg(self.train["y"], lags = lags).fit()
         pred = model.predict(start=self.test.index[0], end=self.test.index[-1])
         return pred, model
 
@@ -143,7 +143,7 @@ class ARMAFamily:
         pred = model.predict(start=self.test.index[0], end=self.test.index[-1], typ='levels')
         return pred, model
 
-    def ARIMAX(self, order=(1,1,1), exog_lags=6):
+    def ARIMAX(self, order=(2,1,2), exog_lags=6):
         '''
         ARIMA with exogenous variables, where we can include other macro variables as predictors. 
         For example, we can predict next month's GDP based on the past 6 months of GDP data and the past 6 months of unemployment rate data. 
@@ -166,8 +166,28 @@ class ARMAFamily:
             m=m,
             trace=True,
             error_action="ignore",
-            suppress_warnings=True
+            suppress_warnings=True,
         )
+
+        # model = pm.auto_arima(
+        #     y=self.train["y"],        # your macro series
+        #     X=self.train.get("X", None), # optional exogenous variables
+        #     start_p=1, start_q=1,     # lower start to reduce computation
+        #     max_p=3, max_q=3,         # macros rarely need high AR/MA orders
+        #     d=None,                    # let auto_arima determine differencing
+        #     seasonal=True,
+        #     m=12,                      # monthly data -> yearly seasonality
+        #     start_P=0, max_P=1,        # seasonal AR, low to prevent overfitting
+        #     D=None,                     # let seasonal differencing be estimated
+        #     max_D=1,
+        #     stepwise=True,             # faster search
+        #     information_criterion='aic', # common choice
+        #     suppress_warnings=True,
+        #     error_action='ignore',
+        #     trace=True,
+        #     with_intercept="auto",
+        #     max_order=6                # keep total p+q+P+Q reasonable
+        # )
         pred = pd.Series(model.predict(n_periods=len(self.test)), index=self.test.index)
         return pred, model
 
@@ -199,34 +219,94 @@ class ARMAFamily:
         pred = model.predict(X_test_nl)
         pred = pd.Series(pred, index=self.test.index)
         return pred, model
+   
+    @staticmethod
+    def generate_macro_surprises(MACRO_df):
+        """
+            Takes raw macro input
+            
+            For each macro column:
+            - Fit ARIMA
+            - Generate in-sample forecast (rolling would be better later)
+            - Compute surprise = actual - expected
+            
+            Returns:
+            - DataFrame of macro surprises
+        """
+        surprise_df = pd.DataFrame(index=MACRO_df.index)
+
+        for col in MACRO_df.columns:
+            series = MACRO_df[col].dropna()
+
+            if len(series) < 50:
+                continue  # skip short series
+
+            try:
+                arma = ARMAFamily(x=pd.DataFrame(), y=series, etf=col)
+                forecast, fitted_model = arma.AUTO_ARIMA()  # fitted_model is your trained model
+
+                # Use in-sample predictions for all indices
+                in_sample_pred = pd.Series(fitted_model.predict_in_sample(), index=series.index)
+                surprise = series - in_sample_pred
+                surprise_df[col + "_surprise"] = surprise
+
+            except Exception as e:
+                print(f"ARIMA failed for {col}: {e}")
+
+        print(surprise_df.head())       
+
+        return surprise_df
 
     def plot_forecast(self, forecast, model_name="Model", save=True):
         """
-        Plots training, test, and forecasted values.
+        Plots training, test, and forecasted values in a two-panel format.
         
         Parameters:
         - forecast: pd.Series of forecasted values (aligned with self.test index)
         - model_name: str, name of the model (used for title and saving)
         - save: bool, whether to save the figure to self.output_dir
         """
-        plt.figure(figsize=(12, 5))
-        plt.plot(self.train["y"], label="Training Data")
-        plt.plot(self.test["y"], label="Actual Values", linewidth=2)
-        plt.plot(forecast, label="Forecasted Values", linestyle="--")
-        plt.title(f"Forecast vs Actual - {model_name}")
-        plt.xlabel("Time")
-        plt.ylabel("Value")
-        plt.legend()
-        plt.grid(True)
-        
-        if save:
-            filepath = os.path.join(self.output_dir, f"{self.etf}_{model_name}_forecast.png")
-            plt.savefig(filepath, bbox_inches='tight')
-            print(f"Saved plot to {filepath}")
-        
-        plt.show()
+        # Compute metrics
+        actual = self.test["y"]
 
-    from sklearn.metrics import confusion_matrix
+
+        plt.figure(figsize=(14, 6))
+
+        # --- Panel 1: Train/Test with Forecast ---
+        ax1 = plt.subplot(1, 2, 1)
+        ax1.plot(self.train.index, self.train["y"], label="Train (Actual)", color="black")
+        ax1.plot(self.test.index, actual, label="Test (Actual)", linewidth=2, color="orange")
+        ax1.plot(self.test.index, forecast, label="Test (Forecasted)", linestyle="--", color="green")
+        ax1.axvline(self.test.index[0], color="black", linestyle=":", label="Train/Test Split")
+        ax1.set_title(f"Train/Test with Forecast - {model_name}")
+        ax1.set_xlabel("Month")
+        ax1.set_ylabel("Value")
+        ax1.legend()
+        ax1.grid(True)
+
+        # --- Panel 2: Out-of-Sample Actual vs Forecasted ---
+        df_oos = pd.DataFrame({"Actual": actual.values, "Predicted": forecast.values}, index=self.test.index)
+
+        ax2 = plt.subplot(1, 2, 2)
+        ax2.plot(df_oos.index, df_oos["Actual"], label="Actual", linewidth=2, color="orange")
+        ax2.plot(df_oos.index, df_oos["Predicted"], label="Forecasted", linestyle="--", color="green")
+        ax2.set_title("Out-of-Sample: Actual vs Forecasted")
+        ax2.set_xlabel("Month")
+        ax2.set_ylabel("Value")
+        ax2.legend()
+        ax2.grid(True)
+
+        plt.tight_layout()
+
+        if save:
+            os.makedirs(self.output_dir, exist_ok=True)
+            filepath = os.path.join(self.output_dir, f"{self.etf}_{model_name}_forecast.png")
+            plt.savefig(filepath, dpi=300, bbox_inches="tight")
+            print(f"Saved plot to {filepath}")
+
+        plt.show()
+        plt.close()
+
 
     def evaluate_forecast(self, forecast, actual=None):
         """
@@ -284,14 +364,27 @@ class ARMAFamily:
 
 if __name__ == "__main__":
     # Example usage
-    macro = 'data/raw_data/MCOILWTICO.csv'
-    data = fix_pd(macro)
-    # data = log_diff(data) 
+    # macro = 'data/raw_data/INDPRO.csv'
+    etf = 'data/raw_data/ETFs/XLV_monthly.csv'
+
+    data = fix_pd(etf)
+    data = data["Close"].dropna()
+    # data = log_diff(data)
     data = data[:240]
 
-    y = data.dropna()
+    # n = 240
+    # t = np.arange(n)
 
-    model = ARMAFamily(x=pd.DataFrame(), y=y, etf="MCOILWTICO")
+    # # Strong AR structure, gentle decay, minimal noise
+    # data = (np.exp(-0.005 * t)) * np.sin( * np.pi * t / 12) + np.random.normal(0, 0.05, n)
+
+    # decomp = seasonal_decompose(data, model="additive", period=12)
+    # decomp.plot()
+    # plt.show()
+
+
+    model = ARMAFamily(x=pd.DataFrame(), y=data, etf="XLE")
     forecast, fitted_model = model.AUTO_ARIMA()
-    model.plot_forecast(forecast, model_name="AutoARIMA")
+    model.plot_forecast(forecast, model_name="AUTO_ARIMA")
+    print(fitted_model.summary())
     model.evaluate_forecast(forecast)

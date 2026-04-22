@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sector Regression Slide Tool</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f5f5f3; min-height: 100vh; padding: 28px; }
+  h1 { font-size: 18px; font-weight: 600; color: #111; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #888; margin-bottom: 24px; }
+  .app { display: grid; grid-template-columns: 300px 1fr; gap: 24px; max-width: 1140px; margin: 0 auto; }
+
+  /* FORM */
+  .form-panel { background: #fff; border-radius: 12px; border: 1px solid #e5e5e3; padding: 20px; }
+  .form-panel h2 { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 16px; }
+  .fg { margin-bottom: 10px; }
+  .fg label { display: block; font-size: 11px; color: #999; margin-bottom: 3px; font-weight: 500; }
+  .fg input { width: 100%; font-size: 13px; padding: 6px 10px; border: 1px solid #e0e0de; border-radius: 6px; background: #fafafa; color: #111; font-family: inherit; }
+  .fg input:focus { outline: none; border-color: #999; background: #fff; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .divider { font-size: 11px; font-weight: 600; color: #ccc; text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 10px; padding-top: 12px; border-top: 1px solid #f0f0ee; }
+  .divider-first { font-size: 11px; font-weight: 600; color: #ccc; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+
+  /* holding rows in form */
+  .holding-row { display: grid; grid-template-columns: 1fr 68px 22px; gap: 6px; margin-bottom: 6px; align-items: center; }
+  .holding-row input { font-size: 12px; padding: 5px 8px; border: 1px solid #e0e0de; border-radius: 6px; background: #fafafa; color: #111; font-family: inherit; width: 100%; }
+  .holding-row input:focus { outline: none; border-color: #999; background: #fff; }
+
+  /* coef rows in form */
+  .coef-header { display: grid; grid-template-columns: 1.4fr .8fr .8fr .8fr 22px; gap: 4px; margin-bottom: 4px; }
+  .coef-header span { font-size: 10px; color: #696969; font-weight: 500; }
+  .coef-row { display: grid; grid-template-columns: 1.4fr .8fr .8fr .8fr 22px; gap: 4px; margin-bottom: 5px; align-items: center; }
+  .coef-row input { font-size: 12px; padding: 5px 7px; border: 1px solid #e0e0de; border-radius: 6px; background: #fafafa; color: #111; font-family: inherit; width: 100%; }
+  .coef-row input:focus { outline: none; border-color: #999; background: #fff; }
+
+  .rm-btn { background: none; border: none; color: #ddd; cursor: pointer; font-size: 16px; line-height: 1; padding: 0; }
+  .rm-btn:hover { color: #e24b4a; }
+  .add-btn { font-size: 12px; color: #3B6D11; background: none; border: none; cursor: pointer; margin-top: 4px; font-family: inherit; padding: 0; }
+
+  /* PREVIEW */
+  .preview-panel { background: #fff; border-radius: 12px; border: 1px solid #e5e5e3; padding: 20px; }
+  .preview-panel h2 { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  .tip { font-size: 12px; color: #aaa; margin-bottom: 14px; }
+  .screenshot-area { background: #fff; border: 1px solid #e8e8e6; border-radius: 10px; padding: 28px; }
+
+  /* CARD — holdings bar */
+  .holdings-bar { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; padding-bottom: 14px; margin-bottom: 16px; border-bottom: 1px solid #f0f0ee; }
+  .holdings-lbl { font-size: 10px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: .06em; margin-right: 2px; }
+  .holding-name { font-size: 14px; font-weight: 600; color: #111; }
+  .holding-pct  { font-size: 14px; font-weight: 400; color: #888; margin-left: 2px; }
+  .holding-sep  { font-size: 14px; color: #ccc; }
+
+  /* CARD — stat grid */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .stat-card { background: #f8f8f6; border-radius: 8px; padding: 14px 16px; }
+  .stat-label { font-size: 10px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  .stat-value { font-size: 26px; font-weight: 700; color: #111; line-height: 1; }
+  .stat-sub { font-size: 11px; color: #bbb; margin-top: 3px; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; margin-top: 5px; }
+  .badge-g { background: #EAF3DE; color: #3B6D11; }
+  .badge-a { background: #FAEEDA; color: #854F0B; }
+
+  /* CARD — model pill */
+  .model-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .model-pill { background: #f8f8f6; border-radius: 6px; padding: 7px 13px; font-size: 12px; color: #666; }
+  .model-pill strong { color: #111; font-weight: 600; }
+
+  /* CARD — coef table */
+  .coef-section { border: 1px solid #f0f0ee; border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+  .coef-section-title { font-size: 10px; font-weight: 600; color: #7c7c7c; text-transform: uppercase; letter-spacing: .06em; padding: 9px 14px; background: #fafafa; border-bottom: 1px solid #f0f0ee; }
+  table.ct { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.ct th { font-size: 10px; font-weight: 500; color: #bbb; text-align: left; padding: 8px 14px; background: #fafafa; border-bottom: 1px solid #f0f0ee; }
+  table.ct th:not(:first-child) { text-align: right; }
+  table.ct td { padding: 8px 14px; border-bottom: 1px solid #f8f8f6; color: #111; }
+  table.ct td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+  table.ct tr:last-child td { border-bottom: none; }
+  .sig { color: #3B6D11; font-weight: 600; }
+
+  /* CARD — diagnostics */
+  .diag-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .di { background: #f8f8f6; border-radius: 8px; padding: 10px; text-align: center; }
+  .di-val { font-size: 15px; font-weight: 600; color: #111; }
+  .di-lbl { font-size: 10px; color: #aaa; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<h1>Sector regression slide tool</h1>
+<p class="subtitle">Fill in the left panel — the right card updates live. Screenshot just the white card area for your slides.</p>
+
+<div class="app">
+  <div class="form-panel">
+    <h2>Model data</h2>
+
+    <div class="divider-first">Top holdings</div>
+    <div class="holding-row" style="margin-bottom:5px;">
+      <span style="font-size:10px;color:#bbb;font-weight:500;">Company</span>
+      <span style="font-size:10px;color:#bbb;font-weight:500;">Weight</span>
+      <span></span>
+    </div>
+    <div id="holdingRows"></div>
+    <button class="add-btn" onclick="addHolding()">+ Add holding</button>
+
+    <div class="divider">Model stats</div>
+    <div class="fg">
+      <label>Directional accuracy (%)</label>
+      <input id="f_dir" type="number" step="0.01" value="59.57" oninput="render()">
+    </div>
+    <div class="two">
+      <div class="fg"><label>In-sample R²</label><input id="f_r2" type="number" step="0.001" value="0.157" oninput="render()"></div>
+      <div class="fg"><label>OOS R²</label><input id="f_oos" type="number" step="0.001" value="0.1106" oninput="render()"></div>
+    </div>
+    <div class="fg"><label>F-statistic</label><input id="f_fstat" type="number" step="0.01" value="17.47" oninput="render()"></div>
+
+    <div class="divider">Coefficients</div>
+    <div class="coef-header">
+      <span>Variable</span><span>Coef</span><span>t-stat</span><span>p-value</span><span></span>
+    </div>
+    <div id="coefRows"></div>
+    <button class="add-btn" onclick="addRow()">+ Add variable</button>
+
+    <div class="divider">Diagnostics</div>
+    <div class="two">
+      <div class="fg"><label>Prob(Omnibus)</label><input id="f_omni" type="number" step="0.001" value="0.809" oninput="render()"></div>
+      <div class="fg"><label>Durbin-Watson</label><input id="f_dw" type="number" step="0.001" value="2.486" oninput="render()"></div>
+    </div>
+    <div class="fg"><label>Prob(JB)</label><input id="f_jb" type="number" step="0.001" value="0.891" oninput="render()"></div>
+  </div>
+
+  <div class="preview-panel">
+    <h2>Screenshot area</h2>
+    <p class="tip">Use your system screenshot tool cropped to this card.</p>
+    <div class="screenshot-area" id="card"></div>
+  </div>
+</div>
+
+<script>
+const defaultHoldings = [
+  { name: 'Exxon Mobil', pct: '23%' },
+  { name: 'Chevron',     pct: '17%' }
+];
+
+const defaultCoefs = [
+  { v: 'Intercept',        c: '-0.0117', t: '-1.593', p: '0.113'  },
+  { v: 'GDP',              c: '5.9794',  t: '3.229',  p: '0.001'  },
+  { v: 'MCOILWTICO (Oil)', c: '0.1896',  t: '3.740',  p: '<0.001' }
+];
+
+function buildHoldingRows(data) {
+  const c = document.getElementById('holdingRows');
+  c.innerHTML = '';
+  data.forEach(h => c.appendChild(makeHoldingRow(h)));
+}
+
+function makeHoldingRow(h = {}) {
+  const div = document.createElement('div');
+  div.className = 'holding-row';
+  div.innerHTML = `
+    <input type="text" class="hn" placeholder="Company name" value="${h.name || ''}" oninput="render()">
+    <input type="text" class="hp" placeholder="23%" value="${h.pct || ''}" oninput="render()">
+    <button class="rm-btn" onclick="this.parentElement.remove();render()">×</button>`;
+  return div;
+}
+
+function addHolding() {
+  document.getElementById('holdingRows').appendChild(makeHoldingRow());
+  render();
+}
+
+function getHoldings() {
+  return Array.from(document.querySelectorAll('#holdingRows .holding-row')).map(r => ({
+    name: r.querySelector('.hn').value.trim(),
+    pct:  r.querySelector('.hp').value.trim()
+  })).filter(h => h.name);
+}
+
+function buildCoefRows(data) {
+  const c = document.getElementById('coefRows');
+  c.innerHTML = '';
+  data.forEach(r => c.appendChild(makeCoefRow(r)));
+}
+
+function makeCoefRow(r = {}) {
+  const div = document.createElement('div');
+  div.className = 'coef-row';
+  div.innerHTML = `
+    <input type="text" class="cv"  placeholder="Variable" value="${r.v || ''}" oninput="render()">
+    <input type="text" class="cc"  placeholder="0.000"    value="${r.c || ''}" oninput="render()">
+    <input type="text" class="ct2" placeholder="0.00"     value="${r.t || ''}" oninput="render()">
+    <input type="text" class="cp"  placeholder="0.000"    value="${r.p || ''}" oninput="render()">
+    <button class="rm-btn" onclick="this.parentElement.remove();render()">×</button>`;
+  return div;
+}
+
+function addRow() {
+  document.getElementById('coefRows').appendChild(makeCoefRow());
+  render();
+}
+
+function getCoefs() {
+  return Array.from(document.querySelectorAll('#coefRows .coef-row')).map(r => ({
+    v: r.querySelector('.cv').value,
+    c: r.querySelector('.cc').value,
+    t: r.querySelector('.ct2').value,
+    p: r.querySelector('.cp').value
+  }));
+}
+
+function f(v, d = 3) {
+  const n = parseFloat(v);
+  return isNaN(n) ? (v || '—') : n.toFixed(d);
+}
+
+function isSig(p) {
+  const s = (p || '').toString().trim();
+  if (s.startsWith('<')) return true;
+  const n = parseFloat(s);
+  return !isNaN(n) && n < 0.05;
+}
+
+function render() {
+  const dir   = parseFloat(document.getElementById('f_dir').value);
+  const r2    = parseFloat(document.getElementById('f_r2').value);
+  const oos   = parseFloat(document.getElementById('f_oos').value);
+  const fstat = document.getElementById('f_fstat').value;
+  const omni  = document.getElementById('f_omni').value;
+  const dw    = document.getElementById('f_dw').value;
+  const jb    = document.getElementById('f_jb').value;
+  const coefs = getCoefs();
+  const holdings = getHoldings();
+
+  const holdingsHTML = holdings.length ? `
+    <div class="holdings-bar">
+      <span class="holdings-lbl">Top holdings</span>
+      ${holdings.map((h, i) => `
+        ${i > 0 ? '<span class="holding-sep">&middot;</span>' : ''}
+        <span class="holding-name">${h.name}</span><span class="holding-pct">${h.pct}</span>
+      `).join('')}
+    </div>` : '';
+
+  const coefRows = coefs.map(c => `
+    <tr>
+      <td style="font-weight:500">${c.v || '—'}</td>
+      <td>${f(c.c, 4)}</td>
+      <td>${f(c.t, 3)}</td>
+      <td class="${isSig(c.p) ? 'sig' : ''}">${c.p || '—'}${isSig(c.p) ? ' *' : ''}</td>
+    </tr>`).join('');
+
+  document.getElementById('card').innerHTML = `
+    ${holdingsHTML}
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Directional accuracy</div>
+        <div class="stat-value">${isNaN(dir) ? '—' : dir.toFixed(1) + '%'}</div>
+        <div class="stat-sub">correct direction</div>
+        <span class="badge ${dir >= 50 ? 'badge-g' : 'badge-a'}">${dir >= 50 ? 'Above 50% baseline' : 'Below baseline'}</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">In-sample R²</div>
+        <div class="stat-value">${isNaN(r2) ? '—' : r2.toFixed(3)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">OOS R²</div>
+        <div class="stat-value">${isNaN(oos) ? '—' : oos.toFixed(4)}</div>
+        <div class="stat-sub">out-of-sample</div>
+      </div>
+    </div>
+
+    <div class="model-row">
+      <div class="model-pill">F-stat = <strong>${f(fstat, 2)}</strong></div>
+    </div>
+
+    <div class="coef-section">
+      <div class="coef-section-title">OLS coefficients</div>
+      <table class="ct">
+        <thead>
+          <tr><th>Variable</th><th>Coef</th><th>t-stat</th><th>p-value</th></tr>
+        </thead>
+        <tbody>${coefRows}</tbody>
+      </table>
+    </div>
+
+    <div class="diag-row">
+      <div class="di"><div class="di-val">${f(omni, 3)}</div><div class="di-lbl">Prob(Omnibus)</div></div>
+      <div class="di"><div class="di-val">${f(dw,   3)}</div><div class="di-lbl">Durbin-Watson</div></div>
+      <div class="di"><div class="di-val">${f(jb,   3)}</div><div class="di-lbl">Prob(JB)</div></div>
+    </div>`;
+}
+
+buildHoldingRows(defaultHoldings);
+buildCoefRows(defaultCoefs);
+render();
+</script>
+</body>
+</html>

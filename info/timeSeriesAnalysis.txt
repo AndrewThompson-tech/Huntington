@@ -20,3 +20,27 @@ To start, we will map quarerly closing price of XLE (energy) and Oil prices (MCO
 High level overview- https://machinelearningplus.com/time-series/time-series-analysis-python/
 Forecasting example- https://www.geeksforgeeks.org/machine-learning/time-series-analysis-and-forecasting/
 Complicated- https://keras.io/examples/timeseries/timeseries_weather_forecasting/
+
+
+AR
+    Autoregressive: Make predictions based on past values, or lags. ​
+    AR(p) where p is the optimized number of lags.​
+    Long term memory model​
+
+MA
+    Moving Average: The current value of a series depends past error terms​
+    Shocks that happened long ago have little effect on tomorrow's prediction​
+    MA(q) where q is the optimized number of errors​
+    Short term memory model​
+
+    Assumes data is stationary​
+
+ARIMA
+    Lags + error lags ​
+    ARIMA(p, d, q)​
+    AR terms, difference, MA terms
+
+ARMAX
+    ARIMA model with explanatory variables​
+    ARMAX(p, q, b) refers to a model with p autoregressive terms, q moving average terms and b exogenous inputs terms   
+​

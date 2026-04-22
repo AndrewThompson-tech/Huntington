@@ -4,6 +4,8 @@ import json
 import numpy as np
 from statsmodels.tsa.stattools import adfuller
 
+from timeseries import ARMAFamily
+
 
 '''
 Clean up CSV files and put them into a master set
@@ -24,6 +26,14 @@ def read_csv_standard(csv_file):
 def read_quarterly(df):
     # Takes df and extrapolates to quarterly average
     return df.resample('QE').mean()
+
+def read_monthly(df):
+    # Takes daily DF and resamples to monthly average] 
+    df = df.resample('ME').last()
+    df = df.ffill()
+    print(df.head)
+    return df
+
 
 def interpolate_monthly(df):
     # Takes quarterly measured data and interpolates it to monthly frequency, keeping a complete monthly date index.

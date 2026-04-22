@@ -8,7 +8,6 @@ from statsmodels.regression.rolling import RollingOLS
 from statsmodels.stats.anova import anova_lm
 import os
 
-
 class LinearRegressionModel:
     def __init__(self, x, y, etf, output_dir="reports/images", train_ratio=0.80):
         self.x = x.copy()

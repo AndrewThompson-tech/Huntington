@@ -1,3 +1,4 @@
+from correlation import graph_dynamic
 from data_cleanse import *
 from linearRegression import LinearRegressionModel
 from PCA import dynamic_pca
@@ -9,20 +10,30 @@ from timeseries import ARMAFamily
 
 
 def create_linear_model( PROCESSING, TABLE_CONFIG, etf, use_lag=True, use_pca=True, corr_threshold=0.80, 
-                        variance_explained=0.90, stability_threshold=0.50,
+                        variance_explained=0.90, stability_threshold=0.50,SEP_projection=False
     ):
     valid_lag = []
 
     MACRO = master_table(TABLE_CONFIG, PROCESSING, "all_macros")
+
+    # MACRO_raw = master_table(TABLE_CONFIG, PROCESSING, "all_macros")
+
+    # Generate surprises
+    # MACRO_surprise = ARMAFamily.generate_macro_surprises(MACRO_raw)
+    # MACRO = pd.concat([MACRO_raw, MACRO_surprise], axis=1)
+
     ETF = fix_pd(etf)
     # print(ETF.head())
-    ETF = ETF.pct_change()    
+    ETF = ETF.pct_change() 
+    ETF = ETF[:240]   
     
     m_table = MACRO.merge(ETF[['Close']], on='observation_date', how='left')
+    # m_table = MACRO.merge(ETF[['Close']], on='observation_date', how='inner')
     m_table = m_table[:240]
     print(m_table)
 
     macros_for_corr = list(MACRO.columns)
+    # macros_for_corr = [col for col in m_table.columns if col != "Close"]
     yearly_period, lags = 5, 12
 
     y = m_table["Close"]
@@ -31,7 +42,7 @@ def create_linear_model( PROCESSING, TABLE_CONFIG, etf, use_lag=True, use_pca=Tr
         run_correlation_engine(m_table, macros_for_corr, ["Close"], yearly_period, lags, generate_config=True)
         m_table, valid_lag = apply_lag("optimal_lags.json", m_table, stability_threshold=stability_threshold)
 
-    print(valid_lag)
+    print(f"Valid Lag: {valid_lag}")
     # Now remove Close (after lag engine is done)
     m_table = m_table.drop(columns=["Close"])
 
@@ -40,6 +51,14 @@ def create_linear_model( PROCESSING, TABLE_CONFIG, etf, use_lag=True, use_pca=Tr
         MACRO_final.to_csv("pca_macros.csv")
     else:
         MACRO_final = m_table
+
+    m_table.to_csv("final_macro_table.csv")
+
+    # SEP projection implementation
+    # if SEP_projection:
+    #     break
+        
+
 
     lr_model = LinearRegressionModel(MACRO_final, y, etf)
     # osl, anova = lr_model.linear_regression()
@@ -64,7 +83,7 @@ def create_time_series_model(PROCESSING, TABLE_CONFIG, etf, model_type="AUTO_ARI
     """
     
     ETF = fix_pd(etf)
-    ETF = ETF.pct_change().dropna()  # optional, aligns with your linear model
+    # ETF = ETF.pct_change().dropna()  # optional, aligns with your linear model
 
     MACRO = master_table(TABLE_CONFIG, PROCESSING, "all_macros")
     m_table = MACRO.merge(ETF[['Close']], on='observation_date', how='left')
@@ -72,9 +91,17 @@ def create_time_series_model(PROCESSING, TABLE_CONFIG, etf, model_type="AUTO_ARI
     print(m_table.head())
     
     y = m_table["Close"]
-    X = m_table.drop(columns=["Close"])
 
-    
+    macros_for_corr = list(MACRO.columns)
+    yearly_period, lags = 5, 12
+    stability_threshold = 0.50
+
+    run_correlation_engine(m_table, macros_for_corr, ["Close"], yearly_period, lags, generate_config=True)
+    m_table, valid_lag = apply_lag("optimal_lags.json", m_table, stability_threshold=stability_threshold)
+    print(valid_lag)
+
+    # Now remove Close (after lag engine is done)
+    X = m_table.drop(columns=["Close"])
 
     arma_model = ARMAFamily(X, y, etf)
     
@@ -106,6 +133,7 @@ if __name__ == "__main__":
     PROCESSING = {
         "read" : read_csv_standard,
         "quarterly" : read_quarterly,
+        "monthly" : read_monthly,
         "MoM" : MoM,
         "interpolate_monthly" : interpolate_monthly,
         "YoY" : YoY,
@@ -113,50 +141,61 @@ if __name__ == "__main__":
         "log_diff" : log_diff,
         "diff" : diff
     }
-
-
     TABLE_CONFIG = {
         "GDP": {
             "path": "data/raw_data/GDP.csv",
-            "pipeline": ["read", "interpolate_monthly"],
-            "shift": 1
+            "pipeline": ["read", "interpolate_monthly", "log_diff"],
+            "shift": 0
         },
-        "MCOILWTICO": {
-            "path": "data/raw_data/MCOILWTICO.csv",
-            "pipeline": ["read", "log_diff"],
-            "shift": 1
+        "CPIENGSL": {
+            "path": "data/raw_data/CPIENGSL.csv",
+            "pipeline": ["read", "diff"],
+            "shift": 0
         },
-        "UNRATE": {
-            "path": "data/raw_data/UNRATE.csv",
-            "pipeline": ["read", "log_diff"],
-            "shift": 1
+        "PCEPI": {
+            "path": "data/raw_data/PCEPI.csv",
+            "pipeline": ["read", "diff"],
+            "shift": 0
+        },
+        "IPG211111CN": {
+            "path": "data/raw_data/IPG211111CN.csv",
+            "pipeline": ["read", "diff"],
+            "shift": 0
         },
      }
+    
 
     
-    etf = 'data/raw_data/ETFs/XLP_monthly.csv'
+    etf = 'data/raw_data/ETFs/XLU_monthly.csv'
 
-    # create_linear_model(
+    # graph_dynamic(
     #     PROCESSING,
     #     TABLE_CONFIG,
     #     etf,
     #     use_lag=True,
-    #     use_pca=True,
-    #     corr_threshold=0.80,
-    #     variance_explained=0.90,
-    #     stability_threshold=0.50,
+    #     use_pca=True
     # )
 
-    # I have things up and running. Now what i need to figure out is processing rules, what order I should give ARIMAX (will
-    # probably need to run AUTO_ARIMA first). Then I need to implement the lag engine and all that good stuff. 
-    # I am at a good stppping point for now.
+    # forecast, metrics, model_obj = create_time_series_model(
+    #     PROCESSING,
+    #     TABLE_CONFIG,
+    #     etf,
+    #     model_type="ARIMAX",
+    #     forecast_periods=12
+    # )
 
-    forecast, metrics, model_obj = create_time_series_model(
+    # Caucluate surprises and add that to the TABLE_CONFIGS for the linear model to use a feature
+
+    create_linear_model(
         PROCESSING,
         TABLE_CONFIG,
         etf,
-        model_type="ARIMAX",
-        forecast_periods=12
+        use_lag=True,
+        use_pca=True,
+        corr_threshold=0.80,
+        variance_explained=0.90,
+        stability_threshold=0.50,
+        SEP_projection=True
     )
 
 

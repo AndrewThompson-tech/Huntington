@@ -19,6 +19,7 @@ def dynamic_pca(df, correlation_threshold=0.8, variance_explained=0.9):
     
     # Correlation matrix
     corr_matrix = df[numeric_cols].corr().abs()
+    print(corr_matrix)
     
     # Step 1: Identify clusters of correlated variables
     correlated_groups = []

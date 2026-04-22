@@ -1,3 +1,17 @@
+XLE-
+    TABLE_CONFIG = {
+        "GDP": {
+            "path": "data/raw_data/GDP.csv",
+            "pipeline": ["read", "interpolate_monthly", "log_diff"],
+            "shift": 1
+        },
+        "MCOILWTICO": {
+            "path": "data/raw_data/MCOILWTICO.csv",
+            "pipeline": ["read", "log_diff"],
+            "shift": 0
+        },
+    }
+
 XLI- 
     TABLE_CONFIG = {
         "INDPRO": {
@@ -76,19 +90,70 @@ XLY-
 
 XLP-
     TABLE_CONFIG = {
+        "DSPIC96": {
+            "path": "data/raw_data/DSPIC96.csv",
+            "pipeline": ["read", "log_diff"],
+            "shift": 1
+        },
+
+        "CPIUFDSL": { 
+            "path": "data/raw_data/CPIUFDSL.csv",
+            "pipeline": ["read", "diff"],
+            "shift": 1
+        },
+
+        "UNRATE": {
+            "path": "data/raw_data/UNRATE.csv",
+            "pipeline": ["read", "diff"],
+            "shift": 1
+        },
+
+        "INDPRO": {
+            "path": "data/raw_data/INDPRO.csv",
+            "pipeline": ["read", "log_diff"],
+            "shift": 1
+        }
+    }
+
+XLI-
+    TABLE_CONFIG = {
         "GDP": {
             "path": "data/raw_data/GDP.csv",
             "pipeline": ["read", "interpolate_monthly", "log_diff"],
             "shift": 0
         },
-        "MCOILWTICO": {
-            "path": "data/raw_data/MCOILWTICO.csv",
+        "INDPRO": {
+            "path": "data/raw_data/INDPRO.csv",
             "pipeline": ["read", "log_diff"],
             "shift": 0
         },
-        "UNRATE": {
-            "path": "data/raw_data/UNRATE.csv",
+        "GASREGCOVM": {
+            "path": "data/raw_data/GASREGCOVM.csv",
             "pipeline": ["read", "diff"],
-            "shift": 1
+            "shift": 0
+        }
+     }
+
+XLU
+        TABLE_CONFIG = {
+        "GDP": {
+            "path": "data/raw_data/GDP.csv",
+            "pipeline": ["read", "interpolate_monthly", "log_diff"],
+            "shift": 0
+        },
+        "CPIENGSL": {
+            "path": "data/raw_data/CPIENGSL.csv",
+            "pipeline": ["read", "diff"],
+            "shift": 0
+        },
+        "PCEPI": {
+            "path": "data/raw_data/PCEPI.csv",
+            "pipeline": ["read", "diff"],
+            "shift": 0
+        },
+        "IPG211111CN": {
+            "path": "data/raw_data/IPG211111CN.csv",
+            "pipeline": ["read", "diff"],
+            "shift": 0
         },
      }
