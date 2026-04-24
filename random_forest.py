@@ -1,7 +1,11 @@
 import os
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
 from fredapi import Fred
 from dotenv import load_dotenv
+from correlation_engine import run_correlation_engine
 
 class FeatureEngineer():
     MACRO_PATH = "data/raw_data/macros"
@@ -12,7 +16,7 @@ class FeatureEngineer():
             "GDP": "GDP",
             "Industrial_Production": "INDPRO",
             "Retail_Sales": "RSAFS",
-            "PMI_Proxy": "NAPM",  # ISM PMI
+            "Growth_Proxy": "INDPRO",  # ISM PMI
 
             # Inflation
             "CPI": "CPIAUCSL",
@@ -41,14 +45,35 @@ class FeatureEngineer():
             "Copper": "PCOPPUSDM"
         }
     
-    def __init__(self):
+    MACROS_LIST = [
+        "GDP",
+        "Industrial_Production",
+        "Retail_Sales",
+        "Growth_Proxy",
+        "CPI",
+        "Core_CPI",
+        "PPI",
+        "Fed_Funds_Rate",
+        "10Y_Treasury",
+        "2Y_Treasury",
+        "Unemployment",
+        "Nonfarm_Payrolls",
+        "M2",
+        "Financial_Conditions",
+        "Consumer_Confidence",
+        "PCE",
+        "Oil_WTI",
+        "Copper"
+    ]
+    
+    def __init__(self, etf_ticker):
         load_dotenv()
         self.fred = Fred(os.getenv("FRED_API_KEY"))
         os.makedirs(self.MACRO_PATH, exist_ok=True)
+        self.etf_ticker = etf_ticker
+        self.start_date = '2000-01-01'
 
-    def api_key(self):
-        return self.fred
-    def load_data(self, etf_ticker):
+    def load_data(self):
         macro_dfs = []
 
         # load or fetch macro data
@@ -56,100 +81,109 @@ class FeatureEngineer():
             file_path = os.path.join(self.MACRO_PATH, f"{name}.csv")
 
             if os.path.exists(file_path):
-                print("file path exists")
-                df = pd.read_csv(file_path, parse_dates=["Date"], index_col="Date")
+                # print(f"{name} file path exists")
+                master_df = pd.read_csv(file_path, parse_dates=["Date"], index_col="Date")
             else:
-                print("file path does not exist")
-                data = self.fred.get_series(macro_ticker)
+                # print(f"{name} file path does not exist")
+                data = self.fred.get_series(macro_ticker, observation_start=self.start_date)
 
-                df = pd.DataFrame(data, columns=[name])
-                df.index.name = "Date"
+                master_df = pd.DataFrame(data, columns=[name])
+                master_df.index.name = "Date"
 
-                # Normalize to monthly frequency
-                df = df.resample("ME").last()
+                master_df.to_csv(file_path)
 
-                df.to_csv(file_path)
+            # clean each macro before merging
+            master_df = master_df.sort_index()
+            master_df = master_df[~master_df.index.duplicated(keep="first")]
+            master_df = master_df.resample("MS").mean()
 
-            macro_dfs.append(df)
+            macro_dfs.append(master_df)
 
         # merge the macro data
-        print("merging all macros together")
+        # print("merging all macros together")
         macro_df = pd.concat(macro_dfs, axis=1).sort_index()
 
+        # enforce MONTH START consistency
+        macro_df = macro_df.resample("MS").mean()
+
+        # enforce full MS timeline (NOT ME)
+        full_index = pd.date_range(
+            start=macro_df.index.min(),
+            end=macro_df.index.max(),
+            freq="MS"
+        )
+        macro_df = macro_df.reindex(full_index)
+
+        macro_df = macro_df.interpolate(method="time")
+        macro_df = macro_df.ffill().bfill()
+        
         # load the etf
-        print("loading etf file")
+        # print("loading etf file")
         etf_file = os.path.join(
-            self.ETF_PATH, f"{etf_ticker.upper()}_monthly.csv"
+            self.ETF_PATH, f"{self.etf_ticker.upper()}_monthly.csv"
         )
 
         if not os.path.exists(etf_file):
             raise FileNotFoundError(f"{etf_file} not found")
 
-        etf_df = pd.read_csv(etf_file, parse_dates=["Date"], index_col="Date")
+        etf_df = pd.read_csv(etf_file, parse_dates=["observation_date"], index_col="observation_date")
 
         etf_df = etf_df[["Close"]].rename(
-            columns={"Close": etf_ticker.upper()}
+            columns={"Close": self.etf_ticker.upper()}
         )
 
         # merge etf + macros
-        df = pd.concat([etf_df, macro_df], axis=1).sort_index()
+        master_df = pd.concat([etf_df, macro_df], axis=1).sort_index()
 
         # Fill lower-frequency macro gaps (GDP, etc.)
-        df = df.ffill()
+        master_df = master_df.ffill()
 
         # Drop remaining NaNs
-        df = df.dropna()
+        master_df = master_df.dropna()
 
         # Add derived features
-        df["Yield_Spread"] = df["10Y_Treasury"] - df["2Y_Treasury"]
+        master_df["Yield_Spread"] = master_df["10Y_Treasury"] - master_df["2Y_Treasury"]
 
-        return df
+        return master_df
 
-    def apply_lags():
-        pass
+    def apply_lags(self, master_df: pd.DataFrame):
+        etf_list = [self.etf_ticker]
 
-    def create_target():
-        pass
+        # get optimal lags
+        optimal_lags = run_correlation_engine(
+            master_df=master_df,
+            macro_columns=self.MACROS_LIST,
+            etf_columns=etf_list,
+            window_size=4,
+            lags=12
+        )
 
-    def build_dataset():
-        pass
+        # extract lags from dict
+        lag_dict = {}
+        for macro, values in optimal_lags[self.etf_ticker].items():
+            lag_dict[macro] = values["lag"]
+        
+        # apply lags
+        df_lagged = master_df.copy()
 
+        for macro, lag in lag_dict.items():
+            if macro in df_lagged.columns:
+                df_lagged[macro] = df_lagged[macro].shift(lag)
 
-class RandomForestModel():
-    def __init():
-        pass
+        df_lagged = df_lagged.dropna()
 
-    def train():
-        pass
+        return df_lagged
 
-    def evaluate():
-        pass
+    def create_target(self, lagged_df: pd.DataFrame):
+        etf_col = self.etf_ticker
 
-    def predict():
-        pass
+        lagged_df["Target"] = np.log(
+            lagged_df[etf_col].shift(-1) / lagged_df[etf_col]
+        )
 
-    def feature_importance_gini():
-        pass
+        lagged_df = lagged_df.dropna(subset=["Target"])
 
-    def feature_importance_permutation():
-        pass
-
-class ScenarioEngine():
-    def __init__():
-        pass
-    
-    def run_base_case():
-        pass
-
-    def run_predefined_scenarios():
-        pass
-
-    def run_custom_scenario():
-        pass
-
-
-import numpy as np
-import matplotlib.pyplot as plt
+        return lagged_df
 
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.ensemble import RandomForestRegressor
@@ -157,120 +191,389 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.inspection import permutation_importance
 from sklearn.tree import plot_tree
 
-# Takes in a pd with 1 ETF and all Macros; Will test with and without lags
-def run_random_forest(
-        df: pd.DataFrame, 
-        n_estimators: int = 100, 
-        max_depth: int = None, 
-        min_sample_splits: int = 2, 
-        max_features: str | int | None = "sqrt"
-):
-    """ Allows for hyper parameters, if not then a default forest will develop """
+class RandomForestModel():
+    def __init__(
+        self,
+        n_estimators=100,
+        max_depth=None,
+        min_samples_split=2,
+        max_features="sqrt",
+        n_splits=15
+    ):
+        self.n_estimators = n_estimators
+        self.max_depth = max_depth
+        self.min_samples_split = min_samples_split
+        self.max_features = max_features
+        self.n_splits = n_splits
 
-    metrics = [] # For storing output: will prolly need to change when later adding to frontend
-    regressors = [] # Stores all regressors incase we want to do something with all of them like check regime changes
-    
-    # Slice df to separate etf and macros
-    X = df.iloc[:, 1:] # all macro columns
-    y = df.iloc[:, 0] # etf should be first column of df TODO make into etf returns
+        self.models = []
+        self.metrics = []
+        self.final_model = None
+        self.X_test = None
+        self.y_test = None
+        self.feature_names = None
 
-    # Split the data (ex: 2000-2004 --> 2000-2005 --> 2000-2006)
-    tscv = TimeSeriesSplit(n_splits=15)
+    def run_random_forest(self, df: pd.DataFrame):
+        """
+        df format:
+        [ETF, macro features..., Target]
+        """
 
-    # Loop through each time split
-    for train_index, test_index in tscv.split(X):
-        X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-        y_train, y_test = y.iloc[train_index], y.iloc[test_index]  
+        # Split features and target
+        X = df.iloc[:, 1:-1]
+        y = df["Target"]
+
+        self.feature_names = X.columns.tolist()
+
+        tscv = TimeSeriesSplit(n_splits=self.n_splits)
+
+        for train_idx, test_idx in tscv.split(X):
+            X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+            y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
+
+            model = self._train_model(X_train, y_train)
+
+            oob, mse, r2 = self._evaluate_model(model, X_test, y_test)
+
+            self.models.append(model)
+            self.metrics.append({
+                "train_start": str(X_train.index[0]),
+                "train_end": str(X_train.index[-1]),
+                "test_start": str(X_test.index[0]),
+                "test_end": str(X_test.index[-1]),
+                "oob_score": oob,
+                "mse": mse,
+                "r2": r2
+            })
+
+        # store final model
+        self.final_model = self.models[-1]
+        self.X_test = X_test
+        self.y_test = y_test
+
+        return self
+
+    def _train_model(self, X_train, y_train):
+        model = RandomForestRegressor(
+            n_estimators=self.n_estimators,
+            max_depth=self.max_depth,
+            min_samples_split=self.min_samples_split,
+            max_features=self.max_features,
+            random_state=42,
+            oob_score=True
+        )
+
+        model.fit(X_train, y_train)
         
-        # Train the model
-        regressor = _train_model(X_train, y_train, n_estimators, max_depth, min_sample_splits, max_features)
+        return model
+    
+    def _evaluate_model(self, model, X_test, y_test):
+        y_pred = model.predict(X_test)
 
-        # Evaluate the model
-        oob_score, mse, r2 = _evaluate_model(regressor, X_test, y_test)
+        mse = mean_squared_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
 
-        # Store output data
-        regressors.append(regressor)
-        metrics.append({
-            "train_start": f'{X_train.index[0]}',
-            "train_end": f'{X_train.index[-1]}',
-            "test_start": f'{X_test.index[0]}',
-            "test_end": f'{X_test.index[-1]}',
-            "oob_score": oob_score,
-            "mse": mse,
-            "r2": r2
+        return model.oob_score_, mse, r2
+
+    def get_metrics(self):
+        return self.metrics
+    
+    def predict(self, X: pd.DataFrame):
+        if self.final_model is None:
+            raise ValueError("Model not trained yet.")
+
+        # enforce exact training schema
+        X = X.reindex(columns=self.feature_names)
+
+        return self.final_model.predict(X)
+
+    def feature_importance_gini(self):
+        if self.final_model is None:
+            raise ValueError("Model not trained yet.")
+
+        importances = self.final_model.feature_importances_
+        sorted_idx = np.argsort(importances)
+
+        plt.barh(
+            np.arange(len(sorted_idx)),
+            importances[sorted_idx],
+            align="center"
+        )
+
+        plt.yticks(
+            np.arange(len(sorted_idx)),
+            np.array(self.feature_names)[sorted_idx]
+        )
+
+        plt.title("Gini Feature Importance")
+        plt.xlabel("Importance")
+        plt.ylabel("Features")
+        plt.show()
+
+    def feature_importance_permutation(self):
+        if self.final_model is None:
+            raise ValueError("Model not trained yet.")
+
+        results = permutation_importance(
+            self.final_model,
+            self.X_test,
+            self.y_test,
+            n_repeats=10,
+            random_state=0,
+            n_jobs=-1
+        )
+
+        sorted_idx = np.argsort(results.importances_mean)
+
+        plt.barh(
+            np.arange(len(sorted_idx)),
+            results.importances_mean[sorted_idx],
+            xerr=results.importances_std[sorted_idx],
+            align='center'
+        )
+
+        plt.yticks(
+            np.arange(len(sorted_idx)),
+            np.array(self.feature_names)[sorted_idx]
+        )
+
+        plt.title("Permutation Feature Importance")
+        plt.xlabel("Mean Decrease in Accuracy")
+        plt.show()
+
+class ScenarioEngine():
+    SCENARIOS = {
+        "growth_boom": {
+            "GDP": 0.04,
+            "Industrial_Production": 0.03,
+            "Retail_Sales": 0.05,
+            "Unemployment": 0.03,
+            "CPI": 0.025,
+            "Fed_Funds_Rate": 0.045
+        },
+
+        "recession_shock": {
+            "GDP": -0.03,
+            "Industrial_Production": -0.04,
+            "Retail_Sales": -0.05,
+            "Unemployment": 0.07,
+            "CPI": 0.015,
+            "Fed_Funds_Rate": 0.02
+        },
+
+        "inflation_spike": {
+            "GDP": 0.01,
+            "CPI": 0.06,
+            "Core_CPI": 0.055,
+            "PPI": 0.07,
+            "Fed_Funds_Rate": 0.065,
+            "Consumer_Confidence": -0.02
+        },
+
+        "rate_hike_cycle": {
+            "GDP": 0.015,
+            "CPI": 0.03,
+            "Fed_Funds_Rate": 0.07,
+            "10Y_Treasury": 0.06,
+            "2Y_Treasury": 0.055,
+            "Financial_Conditions": 1.2
+        },
+
+        "liquidity_flood": {
+            "M2": 0.08,
+            "Fed_Funds_Rate": 0.01,
+            "Financial_Conditions": -0.5,
+            "GDP": 0.03,
+            "Retail_Sales": 0.04
+        },
+
+        "tech_boom_environment": {
+            "GDP": 0.035,
+            "Consumer_Confidence": 0.08,
+            "M2": 0.04,
+            "CPI": 0.02,
+            "Industrial_Production": 0.02,
+            "Copper": 0.03
+        },
+
+        "stagflation": {
+            "GDP": 0.0,
+            "CPI": 0.07,
+            "Unemployment": 0.06,
+            "Fed_Funds_Rate": 0.06,
+            "Retail_Sales": -0.02
+        },
+
+        "oil_shock": {
+            "Oil_WTI": 0.25,
+            "CPI": 0.05,
+            "GDP": -0.01,
+            "Consumer_Confidence": -0.03,
+            "Retail_Sales": -0.02
+        },
+
+        "deflation_risk": {
+            "CPI": -0.01,
+            "Core_CPI": -0.005,
+            "GDP": 0.01,
+            "Unemployment": 0.05,
+            "Fed_Funds_Rate": 0.01
+        },
+
+        "balanced_slow_growth": {
+            "GDP": 0.02,
+            "CPI": 0.02,
+            "Unemployment": 0.045,
+            "Fed_Funds_Rate": 0.035,
+            "Retail_Sales": 0.015
+        }
+    }
+
+    def __init__(self, model, base_df: pd.DataFrame):
+        self.model = model
+        self.base_df = base_df.copy()
+
+        self.baseline_predictions = None
+        self.scenario_predictions = None
+    
+    def run_baseline(self):
+        X = self.base_df[self.model.feature_names]  # macros only
+
+        preds = self.model.predict(X)
+
+        self.baseline_predictions = pd.Series(
+            preds,
+            index=self.base_df.index,
+            name="Baseline"
+        )
+
+        return self.baseline_predictions
+
+    def run_predefined_scenario(self, scenario_name: str):
+        df = self.base_df.copy()
+
+        if scenario_name not in self.SCENARIOS:
+            raise ValueError(f"Scenario '{scenario_name}' not found")
+
+        scenario_dict = self.SCENARIOS[scenario_name]
+
+        # apply realistic shocks instead of overwriting values
+        df = self._apply_shocks(df, scenario_dict)
+
+        # align feature space exactly to training
+        X = df[self.model.feature_names]
+
+        preds = self.model.predict(X)
+
+        self.scenario_predictions = pd.Series(
+            preds,
+            index=df.index,
+            name=f"{scenario_name}_scenario"
+        )
+
+        return self.scenario_predictions    
+
+    def run_custom_scenario(self, user_inputs: dict):
+        """
+            user_inputs format (from Streamlit):
+            {
+                "GDP": value,
+                "CPI": value,
+                ...
+            }
+        """
+
+        df = self.base_df.copy()
+
+        df = self._apply_shocks(df, user_inputs)
+
+        X = df[self.model.feature_names]
+
+        preds = self.model.predict(X)
+
+        return pd.Series(
+            preds,
+            index=df.index,
+            name="Custom_Scenario"
+        )
+    
+    def _apply_shocks(self, df, scenario_dict):
+        df = df.copy()
+
+        for macro, shock in scenario_dict.items():
+            if macro not in df.columns:
+                continue
+
+            series = df[macro]
+
+            # heuristic: treat big macro levels differently
+            if macro in ["GDP", "Industrial_Production", "Retail_Sales", "PCE"]:
+                # additive shock
+                df[macro] = series + shock
+
+            elif macro in ["CPI", "Core_CPI", "PPI", "Oil_WTI", "Copper"]:
+                # multiplicative shock (percentage move)
+                df[macro] = series * (1 + shock)
+
+            elif macro in ["Fed_Funds_Rate", "10Y_Treasury", "2Y_Treasury", "Yield_Spread"]:
+                # rate shocks -> additive
+                df[macro] = series + shock
+
+            else:
+                # default safe additive
+                df[macro] = series + shock
+
+        return df
+    
+    def compare(self):
+        if self.baseline_predictions is None:
+            self.run_baseline()
+
+        comparison = pd.DataFrame({
+            "baseline": self.baseline_predictions,
+            "scenario": self.scenario_predictions
         })
 
-        # Aggregate data
-    
-    return(
-        regressors[-1], # Returns the last model that was train on the most amount of data
-        X_test, # Needed for determining and visualizing feature importance
-        y_test,
-        metrics 
-    ) 
+        comparison["impact"] = comparison["scenario"] - comparison["baseline"]
 
-def _train_model(X_train, y_train, n_estimators, max_depth, min_sample_splits, max_features):
-    # Create regressor model
-    regressor = RandomForestRegressor(
-        n_estimators, # number of trees in the forest
-        random_state=42,
-        max_depth=max_depth,
-        min_samples_split=min_sample_splits,
-        max_features=max_features,
-        oob_score=True
-    )
+        return comparison
 
-    # Train the model
-    regressor.fit(X_train, y_train)
+def create_dataset(ticker):
+    # create master dataframe
+    feature_engineer = FeatureEngineer(ticker)
+    master_df = feature_engineer.load_data()
+    lagged_df = feature_engineer.apply_lags(master_df)
+    target_df = feature_engineer.create_target(lagged_df)
 
-    return regressor
+    return target_df
 
-# Should add more metrics like MAE, Adjusted R-squared, etc.
-def _evaluate_model(regressor: RandomForestRegressor, X_test: pd.DataFrame, y_test: pd.Series):
-    y_pred = regressor.predict(X_test) # needed for determining mse and r2 values
-    mse = mean_squared_error(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
+def create_rf_model(target_df):
+    # create random forest model
+    rf_model = RandomForestModel()
+    rf = rf_model.run_random_forest(target_df)
+    metrics = rf_model.get_metrics()
+    gini_feat = rf_model.feature_importance_gini()
+    perm_feat = rf_model.feature_importance_permutation()
 
-    return regressor.oob_score_, mse, r2
+    return rf, metrics
 
-def gini_feat_imp(regressor: RandomForestRegressor, features: list):
-    # obtain default feature importances from running the model
-    feature_importance = regressor.feature_importances_
+def create_scenarios(rf_model, target_df, scenario):
+    # run scenario engine on random forest model
+    scenario_engine = ScenarioEngine(rf_model, target_df)
+    baseline = scenario_engine.run_baseline()
+    predef_scenario = scenario_engine.run_predefined_scenario(scenario)
+    compare = scenario_engine.compare()
 
-    # sort features according to importance
-    sorted_idx = np.argsort(feature_importance) # ranks the array positions by value
-    pos = np.arange(sorted_idx.shape[0])
+    return compare
 
-    # Visualize
-    plt.barh(pos, feature_importance[sorted_idx], align="center")
-    plt.yticks(pos, np.array(features)[sorted_idx])
-    plt.title("Gini Feature Importance")
-    plt.xlabel("Gini Importance")
-    plt.ylabel("Macro-Indicators")
-    plt.show()
+ticker = 'XLK'
+scenario = 'inflation_spike'
+df = create_dataset(ticker)
+rf_model, metrics = create_rf_model(df)
+scenarios = create_scenarios(rf_model, df, scenario)
 
-def perm_feat_imp(regressor: RandomForestRegressor, X_test: pd.DataFrame, y_test: pd.Series, features: list):
-    """
-        How it works:
-            1) Train the model first
-            2) Measure baseline accuracy on the test set
-            3) Shuffle one feature at a time across all test samples
-            4) Measure new accuracy
-            5) Feature Importance = baseline accuracy - shuffled accuracy  
-    """
-    results = permutation_importance(regressor, X_test, y_test, n_repeats=10, random_state=0, n_jobs=-1)
-
-    # Sort importances
-    sorted_idx = np.argsort(results.importances_mean)
-    pos = np.arange(sorted_idx.shape[0])
-
-    # Visualize 
-    plt.barh(pos, results.importances_mean[sorted_idx], xerr=results.importances_std[sorted_idx], align='center')
-    plt.yticks(pos, np.array(features)[sorted_idx])
-    plt.xlim(left=0)
-    plt.xlabel("Mean Decrease in Accuracy")
-    plt.title("Permutation Feature Importance")
-    plt.show()
+print(metrics)
+print(scenarios)
 
 def plot_individual_tree(regressor: RandomForestRegressor, features: list):
     """ Visualizes an individual tree in the forest, showing the decision making at each step """
