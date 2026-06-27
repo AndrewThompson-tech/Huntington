@@ -566,20 +566,15 @@ def create_scenarios(rf_model, target_df, scenario):
 
     return compare
 
-ticker = 'XLK'
+
+# example run of the model
+ticker = 'XLE'
 scenario = 'inflation_spike'
 df = create_dataset(ticker)
 rf_model, metrics = create_rf_model(df)
-scenarios = create_scenarios(rf_model, df, scenario)
+# scenarios = create_scenarios(rf_model, df, scenario)
 
-print(metrics)
-print(scenarios)
+import json 
 
-def plot_individual_tree(regressor: RandomForestRegressor, features: list):
-    """ Visualizes an individual tree in the forest, showing the decision making at each step """
-   
-    tree_to_plot = regressor.estimators_[0]
-    plt.figure(figsize=(20,10))
-    plot_tree(tree_to_plot, feature_names=features, filled=True, rounded=True, fontsize=10)
-    plt.title("Decision Tree from Random Forest")
-    plt.show()
+with open("metrics.json", "w") as json_file:
+    json.dump(metrics, json_file, indent=4)

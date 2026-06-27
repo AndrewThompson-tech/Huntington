@@ -42,8 +42,8 @@ Standard multivariate regression in financial time series faces three major chal
 ## ⚙️ Engineering Solutions
 
 * **For Multicollinearity:** Integrates the **Dynamic PCA Engine** to reduce features into orthogonal components before regression.
-* **For Heteroskedasticity:** Shifts focus to **out-of-sample evaluation** and directional accuracy rather than relying on potentially biased p-values.
-* **For Autocorrelation:** Uses **Rolling/Recursive structures** to reduce long-memory dependency issues and ensure temporal separation.
+* **For Heteroskedasticity:** Utilize Newey-West; shift focus to **out-of-sample evaluation** and directional accuracy rather than relying on potentially biased p-values.
+* **For Autocorrelation:** Utilize Newey-West; use  **Rolling/Recursive structures** to reduce long-memory dependency issues and ensure temporal separation.
 
 
 ## 📊 Evaluation Framework

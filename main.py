@@ -2,7 +2,6 @@ from data_cleanse import *
 from linearRegression import linear_regression, recursive_ordinary_least_squares, window_ordinary_least_squares
 from PCA import dynamic_pca
 from correlation_engine.engine import run_correlation_engine
-from correlation_engine.correlation import correlation
 from statsmodels.graphics.tsaplots import plot_acf
 import matplotlib.pyplot as plt
 

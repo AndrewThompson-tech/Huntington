@@ -22,7 +22,7 @@ The model evaluates risk across three core dimensions:
 $$
 \sigma_{annual} = \sigma_{daily} \times \sqrt{252}
 $$
-* **Interpretation:** Higher volatility $\rightarrow$ larger price swings $\rightarrow$ higher risk.
+* **Interpretation:**  Higher volatility → larger price swings → higher risk.
 
 ### 2. Beta (Market Sensitivity)
 * Measures how sensitive the ETF is to overall market movements (S&P 500).
@@ -39,15 +39,15 @@ $$
 * Based on the top 10 holdings of the ETF (representing 70–99% of total value).
 * Uses a **weighted pairwise correlation** approach to prioritize "Mega-Cap" influence.
 * **Key Steps:**
-    1. Convert price series $\rightarrow$ daily returns.
+    1. Convert price series → daily returns.
     2. Compute correlation matrix.
     3. Apply weights based on ETF allocation.
     4. Extract upper triangle (unique pairs only) using boolean masking.
     5. Compute weighted average correlation.
-* **Interpretation:** High correlation $\rightarrow$ low diversification $\rightarrow$ higher risk.
+* **Interpretation:** High correlation → low diversification → higher risk.
 
 ## ⚖️ Normalization Strategy
-To ensure comparability, each metric is transformed onto a $0-1$ scale:
+To ensure comparability, each metric is transformed onto a $[0, 1]$ scale:
 
 * **Volatility (Min-Max Scaling):**
 $$
@@ -56,7 +56,7 @@ $$
 
 * **Beta (Distance from 1):**
 $$
-\mathrm{norm\_beta} = \min(|\beta - 1|, 1)
+\mathrm{norm\_beta} = \min(\lvert \beta - 1 \rvert, 1)
 $$
 
 * **Holdings Correlation:**
